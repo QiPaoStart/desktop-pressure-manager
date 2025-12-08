@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能AI问答助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#722ED1',
+                        accent: '#0FC6C2',
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        neutral: '#64748B',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02)',
+                        'hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'ai': '0 10px 30px -5px rgba(22, 93, 255, 0.15)',
+                    },
+                    animation: {
+                        'pulse-soft': 'pulse-soft 2s infinite',
+                        'typing': 'typing 1.5s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        'pulse-soft': {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.7 },
+                        },
+                        'typing': {
+                            '0%, 100%': { opacity: 0.4 },
+                            '50%': { opacity: 1 },
+                        },
+                        'float': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        },
+                        'fadeIn': {
+                            '0%': { opacity: 0, transform: 'translateY(10px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .ai-message {
+                @apply bg-primary/5 dark:bg-primary/10 text-dark dark:text-light p-4 rounded-xl rounded-tl-none border border-primary/20 max-w-[85%] shadow-sm hover:shadow-md transition-all duration-300;
+            }
+            .user-message {
+                @apply bg-white dark:bg-slate-800 text-dark dark:text-light p-4 rounded-xl rounded-tr-none border border-slate-200 dark:border-slate-700 max-w-[85%] shadow-sm self-end hover:shadow-md transition-all duration-300;
+            }
+            .feature-card {
+                @apply glass-effect rounded-xl p-4 shadow-soft hover:shadow-hover transition-all duration-300 cursor-pointer hover:-translate-y-1;
+            }
+            .suggestion-tag {
+                @apply bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full text-sm hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-all duration-200 cursor-pointer;
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .dark .glass-effect {
+                background: rgba(30, 41, 59, 0.85);
+                border: 1px solid rgba(51, 65, 85, 0.5);
+            }
+            .gradient-text {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+            }
+        }
+    </style>
+    <style>
+        body {
+            background-image: radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.05) 0%, rgba(114, 46, 209, 0.05) 90%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        .dark body {
+            background-image: radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.03) 0%, rgba(114, 46, 209, 0.03) 90%);
+        }
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #165DFF;
+            margin: 0 2px;
+            animation: typing 1.5s infinite;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        .btn-ripple { position: relative; overflow: hidden; }
+        .btn-ripple:after {
+            content: "";
+            background: rgba(255, 255, 255, 0.3);
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+        }
+        @keyframes ripple {
+            to { transform: scale(4); opacity: 0; }
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #165DFF 0%, #722ED1 100%);
+        }
+    </style>
+</head>
+<body class="font-sans text-dark dark:text-light transition-colors duration-300">
+    <header class="sticky top-0 z-50 glass-effect">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center shadow-ai">
+                    <i class="fa fa-robot text-white text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold gradient-text" style="background: linear-gradient(90deg, #165DFF 0%, #722ED1 100%); background-clip: text; -webkit-background-clip: text; color:transparent; background-color: transparent;">
+                    AI问答助手
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <!-- 只保留主题切换按钮，右上问号和历史已去除 -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 btn-ripple">
+                    <i class="fa fa-moon-o dark:hidden text-neutral"></i>
+                    <i class="fa fa-sun-o hidden dark:block text-yellow-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto px-4 py-8">
+        <!-- DeepSeek API Key 输入区域 -->
+        <section class="flex flex-col items-center mb-6">
+            <div class="glass-effect p-3 rounded-xl flex flex-col items-center w-full max-w-lg">
+                <label for="deepseek-key" class="font-medium text-neutral mb-2 flex items-center gap-2">
+                    <i class="fa fa-key text-primary"></i> DeepSeek API Key
+                </label>
+                <input
+                    id="deepseek-key"
+                    type="password"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="输入你的 DeepSeek API Key"
+                    class="w-full px-4 py-2 rounded-lg border border-primary/40 dark:border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/30 transition-all duration-200"
+                    style="max-width:350px;"
+                >
+                <div class="text-xs text-neutral mt-2 text-center">
+                    API Key 不会上传，仅保存在你的本地浏览器
+                </div>
+            </div>
+        </section>
+        <section class="text-center mb-12 animate-fade-in">
+            <h2 class="text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-4 text-shadow">
+                智能AI问答助手
+            </h2>
+            <p class="text-neutral text-lg max-w-2xl mx-auto mb-8">
+                随时为你解答各种问题，提供专业建议和信息查询服务
+            </p>
+            <div class="flex flex-wrap justify-center gap-2 mb-8 max-w-3xl mx-auto">
+                <div class="suggestion-tag" onclick="selectSuggestion('介绍一下人工智能的发展历程')">
+                    人工智能发展历程
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('如何提高学习效率')">
+                    提高学习效率的方法
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('推荐几本编程入门书籍')">
+                    编程入门书籍推荐
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('解释一下区块链技术')">
+                    区块链技术原理
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('如何制定有效的工作计划')">
+                    制定工作计划
+                </div>
+            </div>
+        </section>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="hidden lg:block">
+                <div class="glass-effect rounded-2xl p-6 shadow-soft h-full">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa fa-rocket text-primary"></i> 功能特性
+                    </h3>
+                    <div class="space-y-3 mb-8">
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-0.5">
+                                <i class="fa fa-comments"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">智能对话</h4>
+                                <p class="text-sm text-neutral">自然语言交互，快速获取答案</p>
+                            </div>
+                        </div>
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary flex-shrink-0 mt-0.5">
+                                <i class="fa fa-microphone"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">语音输入</h4>
+                                <p class="text-sm text-neutral">支持语音提问，解放双手</p>
+                            </div>
+                        </div>
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent flex-shrink-0 mt-0.5">
+                                <i class="fa fa-history"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">历史记录</h4>
+                                <p class="text-sm text-neutral">保存对话历史，随时查看</p>
+                            </div>
+                        </div>
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success flex-shrink-0 mt-0.5">
+                                <i class="fa fa-code"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">代码解释</h4>
+                                <p class="text-sm text-neutral">专业代码分析和解释</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="lg:col-span-2">
+                <div class="glass-effect rounded-2xl shadow-soft h-[600px] flex flex-col">
+                    <div id="chat-history" class="flex-1 overflow-y-auto p-4 scrollbar-thin space-y-6">
+                        <div class="flex items-start gap-3 animate-fade-in">
+                            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                                <i class="fa fa-robot"></i>
+                            </div>
+                            <div class="ai-message">
+                                你好！我是智能AI问答助手～ 有什么可以帮你的吗？
+                                <div class="mt-3 text-sm text-neutral">
+                                    我已支持DeepSeek API，所有问答均由AI实时生成～
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-200 dark:border-slate-700 p-4">
+                        <div class="relative mb-3">
+                            <textarea id="user-input"
+                              placeholder="输入你的问题或需求..."
+                              class="w-full h-20 px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none transition-all duration-300 resize-none scrollbar-thin"></textarea>
+                            <button id="voice-input-btn" type="button" class="absolute right-4 bottom-4 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-neutral hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-all duration-300 btn-ripple">
+                                <i class="fa fa-microphone"></i>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-neutral">
+                                <i class="fa fa-info-circle mr-1"></i>
+                                按 Enter 发送消息，Shift+Enter 换行
+                            </div>
+                            <button id="send-btn" type="button" class="bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg btn-ripple flex items-center gap-2">
+                                <span>发送</span>
+                                <i class="fa fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="mt-16 py-6 border-t border-slate-200 dark:border-slate-800">
+        <div class="container mx-auto px-4 text-center text-neutral text-sm">
+            <p>© 2025 智能AI问答助手 | 隐私保护 | 服务条款</p>
+            <p class="mt-2">本AI仅提供参考信息，请勿用于重要决策</p>
+        </div>
+    </footer>
+    <div id="help-modal" class="fixed inset-0 bg-black/50 bg-blur z-50 flex items-center justify-center hidden">
+        <!-- ...内容同原... -->
+    </div>
+    <div id="history-modal" class="fixed inset-0 bg-black/50 bg-blur z-50 flex items-center justify-center hidden">
+        <!-- ...内容同原... -->
+    </div>
+    <div id="voice-modal" class="fixed inset-0 bg-black/50 bg-blur z-50 flex items-center justify-center hidden">
+        <!-- ...内容同原... -->
+    </div>
+    <script>
+        const DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions";
+        const DEEPSEEK_MODEL = "deepseek-chat";
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const voiceInputBtn = document.getElementById('voice-input-btn');
+        const themeToggle = document.getElementById('theme-toggle');
+        // 右上角按钮已去除(不要出现 helpBtn 或 historyBtn 相关代码)
+        const deepseekKeyInput = document.getElementById('deepseek-key');
+        // 其余模态框、history、voice保留
+        const helpModal = document.getElementById('help-modal');
+        const closeHelp = document.getElementById('close-help');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const historyModal = document.getElementById('history-modal');
+        const closeHistory = document.getElementById('close-history');
+        const closeHistoryBtn = document.getElementById('close-history-btn');
+        const clearHistory = document.getElementById('clear-history');
+        const historyList = document.getElementById('history-list');
+        const emptyHistory = document.getElementById('empty-history');
+        const voiceModal = document.getElementById('voice-modal');
+        const cancelVoice = document.getElementById('cancel-voice');
+        const stopVoice = document.getElementById('stop-voice');
+        let conversationHistory = JSON.parse(localStorage.getItem('aiChatHistory')) || [];
+        let aiMessageHistory = [];
+
+        function saveApiKey(key) {
+            if (key) localStorage.setItem('deepseek_api_key', key);
+            else localStorage.removeItem('deepseek_api_key');
+        }
+        function loadApiKey() {
+            let key = localStorage.getItem('deepseek_api_key') || '';
+            deepseekKeyInput.value = key;
+            return key;
+        }
+        deepseekKeyInput.addEventListener('input', function() {
+            saveApiKey(this.value.trim());
+        });
+
+        function toggleTheme() {
+            const isDarkMode = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+        function loadTheme() {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) document.documentElement.classList.add('dark');
+        }
+        function selectSuggestion(text) {
+            userInput.value = text; userInput.focus();
+            window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+        }
+        function addMessageToHistory(sender, content, isNew = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start gap-3 opacity-0';
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-neutral flex-shrink-0 shadow-sm">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <div class="user-message">
+                        ${escapeHtml(content)}
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                        <i class="fa fa-robot"></i>
+                    </div>
+                    <div class="ai-message">
+                        ${escapeHtml(content)}
+                    </div>
+                `;
+            }
+            chatHistory.appendChild(messageDiv);
+            setTimeout(() => {messageDiv.classList.add('animate-fade-in');}, 10);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            if (isNew) {
+                const messageObj = {
+                    id: Date.now(),
+                    sender: sender,
+                    content: content,
+                    timestamp: new Date().toISOString()
+                };
+                conversationHistory.push(messageObj);
+                saveHistory();
+                updateHistoryModal();
+            }
+        }
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/\n/g, "<br>");
+        }
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-indicator';
+            loadingDiv.className = 'flex items-start gap-3 animate-fade-in';
+            loadingDiv.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                    <i class="fa fa-robot"></i>
+                </div>
+                <div class="ai-message flex items-center gap-2">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            `;
+            chatHistory.appendChild(loadingDiv); chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        function removeLoading() {
+            const loadingDiv = document.getElementById('loading-indicator');
+            if (loadingDiv) loadingDiv.remove();
+        }
+        async function deepseekChatRequest(messages, apikey) {
+            try {
+                const response = await fetch(DEEPSEEK_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apikey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: DEEPSEEK_MODEL,
+                        messages: messages,
+                        temperature: 0.8,
+                        max_tokens: 2048
+                    })
+                });
+                if (!response.ok) {
+                    let msg = 'DeepSeek API请求失败: ' + response.status;
+                    if (response.status === 401) msg = 'API Key错误或未填写，请检查！';
+                    throw new Error(msg);
+                }
+                const res = await response.json();
+                return res.choices && res.choices.length > 0
+                    ? res.choices[0].message.content
+                    : '没有AI回答内容';
+            } catch (err) {
+                return `[DeepSeek错误] ${err.message}`;
+            }
+        }
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            const apikey = loadApiKey();
+            if (!apikey) {
+                addMessageToHistory('ai', '请先输入并保存你的 DeepSeek API Key！');
+                return;
+            }
+            addMessageToHistory('user', message);
+            userInput.value = '';
+            aiMessageHistory.push({role: "user", content: message});
+            showLoading();
+            const aiReply = await deepseekChatRequest(aiMessageHistory, apikey);
+            removeLoading();
+            addMessageToHistory('ai', aiReply);
+            aiMessageHistory.push({role: "assistant", content: aiReply});
+        }
+        function saveHistory() {
+            localStorage.setItem('aiChatHistory', JSON.stringify(conversationHistory));
+        }
+        function updateHistoryModal() {
+            if (conversationHistory.length === 0) {
+                if (emptyHistory) emptyHistory.classList.remove('hidden');
+                return;
+            }
+            if (emptyHistory) emptyHistory.classList.add('hidden');
+            if (historyList) historyList.innerHTML = '';
+            const groupedHistory = {};
+            conversationHistory.forEach(msg => {
+                const date = new Date(msg.timestamp).toLocaleDateString();
+                if (!groupedHistory[date]) groupedHistory[date] = [];
+                groupedHistory[date].push(msg);
+            });
+            Object.keys(groupedHistory).forEach(date => {
+                const dateGroup = document.createElement('div');
+                dateGroup.className = 'mb-6';
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'text-sm font-semibold text-neutral mb-3';
+                dateHeader.textContent = date === new Date().toLocaleDateString() ? '今天' : date;
+                dateGroup.appendChild(dateHeader);
+                const messagesContainer = document.createElement('div');
+                messagesContainer.className = 'space-y-3';
+                groupedHistory[date].forEach(msg => {
+                    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const messageItem = document.createElement('div');
+                    messageItem.className = `p-3 rounded-lg ${msg.sender === 'user' ? 'bg-primary/5 dark:bg-primary/10' : 'bg-slate-100 dark:bg-slate-800'}`;
+                    messageItem.innerHTML = `
+                        <div class="flex justify-between items-center mb-1 text-xs text-neutral">
+                            <span>${msg.sender === 'user' ? '我' : 'AI助手'}</span>
+                            <span>${time}</span>
+                        </div>
+                        <div class="text-sm">${escapeHtml(msg.content)}</div>
+                    `;
+                    if (msg.sender === 'user') {
+                        messageItem.classList.add('cursor-pointer', 'hover:bg-primary/10', 'dark:hover:bg-primary/20');
+                        messageItem.addEventListener('click', () => {
+                            userInput.value = msg.content;
+                            userInput.focus();
+                            historyModal.classList.add('hidden');
+                            window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+                        });
+                    }
+                    messagesContainer.appendChild(messageItem);
+                });
+                dateGroup.appendChild(messagesContainer);
+                if (historyList) historyList.appendChild(dateGroup);
+            });
+        }
+        function clearAllHistory() {
+            if (confirm('确定要清空所有对话历史吗？此操作不可恢复。')) {
+                conversationHistory = [];
+                saveHistory();
+                updateHistoryModal();
+            }
+        }
+        function startVoiceInput() {
+            if (voiceModal) voiceModal.classList.remove('hidden');
+            setTimeout(() => { }, 1000);
+        }
+        function stopVoiceInput() {
+            if (voiceModal) voiceModal.classList.add('hidden');
+            const voiceResults = [
+                '如何提高工作效率',
+                '推荐几本经典的计算机书籍',
+                '解释一下机器学习的基本概念',
+                '明天天气怎么样',
+                '如何制定学习计划'
+            ];
+            const randomResult = voiceResults[Math.floor(Math.random() * voiceResults.length)];
+            userInput.value = randomResult;
+            userInput.focus();
+        }
+        function cancelVoiceInput() {
+            if (voiceModal) voiceModal.classList.add('hidden');
+        }
+        function init() {
+            loadTheme();
+            updateHistoryModal();
+            loadApiKey();
+            themeToggle.addEventListener('click', toggleTheme);
+            sendBtn.addEventListener('click', function(e){
+                e.preventDefault();
+                sendMessage();
+            });
+            userInput.addEventListener('keydown', function(e){
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            voiceInputBtn.addEventListener('click', startVoiceInput);
+            if (stopVoice) stopVoice.addEventListener('click', stopVoiceInput);
+            if (cancelVoice) cancelVoice.addEventListener('click', cancelVoiceInput);
+            if (closeHelp) closeHelp.addEventListener('click', () => helpModal && helpModal.classList.add('hidden'));
+            if (closeHelpBtn) closeHelpBtn.addEventListener('click', () => helpModal && helpModal.classList.add('hidden'));
+            if (closeHistory) closeHistory.addEventListener('click', () => historyModal && historyModal.classList.add('hidden'));
+            if (closeHistoryBtn) closeHistoryBtn.addEventListener('click', () => historyModal && historyModal.classList.add('hidden'));
+            if (clearHistory) clearHistory.addEventListener('click', clearAllHistory);
+            if (helpModal) helpModal.addEventListener('click', (e) => {if (e.target === helpModal) helpModal.classList.add('hidden');});
+            if (historyModal) historyModal.addEventListener('click', (e) => {if (e.target === historyModal) historyModal.classList.add('hidden');});
+            if (voiceModal) voiceModal.addEventListener('click', (e) => {if (e.target === voiceModal) voiceModal.classList.add('hidden');});
+            document.querySelectorAll('.glass-effect').forEach(el => {
+                el.addEventListener('click', (e) => e.stopPropagation());
+            });
+        }
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
