@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>哔哩哔哩风格视频网站</title>
+    <script src="https://cdn.staticfile.net/jquery/1.10.2/jquery.min.js"></script>
+    <!-- 引入Font Awesome图标库 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.net/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft Yahei", "PingFang SC", sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        /* 自定义滚动条 - 提升细节感 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dcdcdc;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #fb7299;
+        }
+
+        /* 头部导航样式优化 */
+        .head {
+            width: 100%;
+            max-width: 1800px;
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 999;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0 20px;
+            background-color: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .head:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .head img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        .left {
+            width: 100%;
+            max-width: 530px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 20px;
+            padding-left: 10px;
+        }
+
+        .left>a {
+            text-decoration: none;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            padding: 5px 8px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .left>a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #fb7299;
+            transition: width 0.3s ease;
+        }
+
+        .left>a:hover {
+            color: #fb7299;
+            background-color: #fef7fa;
+        }
+
+        .left>a:hover::after {
+            width: 100%;
+        }
+
+        .center {
+            position: relative;
+            flex: 1;
+            max-width: 500px;
+            margin: 0 20px;
+        }
+
+        .center>input {
+            width: 100%;
+            height: 36px;
+            border-radius: 18px;
+            padding: 0 15px 0 35px;
+            border: 1px solid #e5e5e5;
+            outline: none;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        .center>input:focus {
+            border-color: #fb7299;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(251, 114, 153, 0.1);
+        }
+
+        .center::before {
+            content: "\f002";
+            font-family: "FontAwesome";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .center:focus-within::before {
+            color: #fb7299;
+        }
+
+        .right {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .right>a {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            font-size: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .right>a .badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background-color: #fb7299;
+            color: white;
+            border-radius: 50%;
+            font-size: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+        }
+
+        .right>a:hover .badge {
+            opacity: 1;
+        }
+
+        .right>a:hover {
+            color: #fb7299;
+            background-color: #fef7fa;
+            transform: translateY(-2px);
+        }
+
+        .right>div {
+            width: 80px;
+            height: 36px;
+            border-radius: 18px;
+            background-color: #fb7299;
+            color: white;
+            display: flex;
+            font-size: 14px;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(251, 114, 153, 0.2);
+        }
+
+        .right>div:hover {
+            background-color: #f8598b;
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 114, 153, 0.3);
+        }
+
+        .right>a:last-child {
+            width: 90px;
+            background-color: #fb7299;
+            display: flex;
+            flex-direction: row;
+            height: 36px;
+            border-radius: 18px;
+            color: white;
+            padding: 0 15px;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(251, 114, 153, 0.2);
+        }
+
+        .right>a:last-child:hover {
+            background-color: #f8598b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(251, 114, 153, 0.3);
+        }
+
+        /* 轮播横幅样式优化 */
+        .banner {
+            width: 100%;
+            height: 400px;
+            background-image: url(https://miaobi-lite.bj.bcebos.com/miaobi/5mao/b%275LuA5LmI5Yqo54mp6IOG5a2Q5pyA5bCPXzE3MzQxMjAzOTcuNTY4NjkxNw%3D%3D%27/0.png);
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            margin-top: 60px;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-radius: 0 0 16px 16px;
+            overflow: hidden;
+        }
+
+        .banner::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.05) 100%);
+            z-index: 1;
+        }
+
+        .banner::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.2));
+            z-index: 1;
+        }
+
+        .banner-div {
+            width: 100%;
+            max-width: 1500px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 30px;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .banner-div>div {
+            position: relative;
+            width: 200px;
+            height: 100px;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .banner-div>div:hover {
+            width: 220px;
+            height: 110px;
+            transform: translateY(-10px);
+            border-color: #fb7299;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .banner-div>div.active {
+            border-color: #fb7299;
+            transform: translateY(-5px);
+        }
+
+        .banner-div>div:hover>img {
+            width: 220px;
+            height: 110px;
+            filter: brightness(1.1) contrast(1.05);
+            transform: scale(1.05);
+        }
+
+        .banner-div>div>div {
+            position: absolute;
+            bottom: 0;
+            color: white;
+            left: 0;
+            right: 0;
+            padding: 12px 15px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.4) 80%, transparent 100%);
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 2;
+        }
+
+        .banner-div img {
+            width: 200px;
+            height: 100px;
+            position: absolute;
+            border-radius: 12px;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            object-fit: cover;
+            z-index: 1;
+        }
+
+        /* 标题样式优化 */
+        .title-wrap {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 0 20px;
+            margin-top: 40px;
+        }
+
+        .title, .top_title {
+            height: 60px;
+            font-weight: 600;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            color: #333;
+            position: relative;
+        }
+
+        .title::after, .top_title::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background-color: #eee;
+            margin-left: 20px;
+        }
+
+        .title::before, .top_title::before {
+            content: "";
+            width: 4px;
+            height: 20px;
+            background-color: #fb7299;
+            border-radius: 2px;
+            margin-right: 10px;
+        }
+
+        /* 新番推荐样式优化 */
+        .new-container {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+            gap: 24px;
+            padding: 0 20px;
+            margin-bottom: 40px;
+        }
+
+        .new {
+            width: calc(10% - 21.6px);
+            min-width: 180px;
+            height: 300px;
+            font-size: 14px;
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .new::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent, transparent);
+            transition: all 0.4s ease;
+            z-index: 1;
+        }
+
+        .new:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .new:hover::before {
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.05));
+        }
+
+        .new>img {
+            width: 100%;
+            height: 220px;
+            border-radius: 12px 12px 0 0;
+            object-fit: cover;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .new:hover>img {
+            transform: scale(1.05);
+        }
+
+        .new>div:first-of-type {
+            padding: 12px 12px 4px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            z-index: 2;
+            position: relative;
+        }
+
+        .new>div:nth-of-type(2) {
+            font-size: 12px;
+            color: #999;
+            padding: 0 12px 12px;
+            z-index: 2;
+            position: relative;
+        }
+
+        /* 视频容器样式优化 - 重点优化部分 */
+        .container {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            align-items: flex-start;
+            gap: 24px;
+            padding: 0 20px 40px;
+        }
+
+        .box {
+            width: calc(20% - 19.2px);
+            min-width: 240px;
+            background-color: white;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 卡片悬停效果增强 */
+        .box:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 视频容器样式 - 大幅优化 */
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 180px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000;
+            cursor: pointer;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+
+        /* 视频封面渐变遮罩 */
+        .video-wrapper::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.1) 100%);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-wrapper:hover::before {
+            opacity: 1;
+        }
+
+        /* 播放按钮优化 */
+        .video-wrapper::after {
+            content: "\f04b";
+            font-family: "FontAwesome";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            color: white;
+            font-size: 36px;
+            opacity: 0.85;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+            background: rgba(251, 114, 153, 0.8);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(251, 114, 153, 0.4);
+        }
+
+        .video-wrapper:hover::after {
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 1;
+            background: rgba(251, 114, 153, 0.95);
+            box-shadow: 0 6px 20px rgba(251, 114, 153, 0.6);
+        }
+
+        /* 视频播放状态样式 */
+        .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: all 0.4s ease;
+            z-index: 1;
+            filter: brightness(0.95);
+        }
+
+        .video-wrapper video.play {
+            filter: brightness(1.05) contrast(1.02);
+            transform: scale(1.02);
+        }
+
+        /* 视频时长/播放量信息 */
+        .video-meta {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            z-index: 2;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .video-wrapper:hover .video-meta {
+            opacity: 1;
+        }
+
+        /* 内容区域优化 */
+        .content {
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            gap: 10px;
+            padding-top: 4px;
+        }
+
+        .content>img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #f5f5f5;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .box:hover .content>img {
+            border-color: #fb7299;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(251, 114, 153, 0.2);
+        }
+
+        .c_left {
+            flex: 1;
+        }
+
+        .c_left>div:first-of-type {
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            color: #333;
+            margin-bottom: 6px;
+            transition: color 0.3s ease;
+        }
+
+        .box:hover .c_left>div:first-of-type {
+            color: #fb7299;
+        }
+
+        .c_left>div:last-of-type {
+            font-size: 12px;
+            color: #999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .c_left>div:last-of-type::before {
+            content: "\f007";
+            font-family: "FontAwesome";
+            font-size: 10px;
+        }
+
+        .box:hover .c_left>div:last-of-type {
+            color: #fb7299;
+        }
+
+        /* 视频数据统计 */
+        .video-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: #999;
+        }
+
+        .video-stats span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .video-stats i {
+            font-size: 10px;
+        }
+
+        .box:hover .video-stats {
+            color: #fb7299;
+        }
+
+        /* 加载动画优化 */
+        .loading {
+            width: 100%;
+            padding: 60px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .loading i {
+            font-size: 40px;
+            color: #fb7299;
+            animation: spin 1.5s linear infinite;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .loading p {
+            color: #999;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 回到顶部按钮 */
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #fb7299;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(251, 114, 153, 0.3);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 999;
+        }
+
+        .back-to-top:hover {
+            background-color: #f8598b;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(251, 114, 153, 0.4);
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 视频加载失败样式优化 */
+        .video-error {
+            width: 100%;
+            height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #fef7fa 0%, #fcf1f7 100%);
+            border-radius: 8px;
+            color: #999;
+            transition: all 0.3s ease;
+            border: 1px solid #fce4ec;
+        }
+
+        .video-error:hover {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fef7fa 100%);
+            transform: scale(1.02);
+        }
+
+        .video-error i {
+            font-size: 40px;
+            margin-bottom: 10px;
+            color: #fb7299;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* 卡片加载动画 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .box {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 1600px) {
+            .new {
+                width: calc(12.5% - 21px);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .box {
+                width: calc(25% - 18px);
+            }
+            .new {
+                width: calc(16.666% - 20px);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .box {
+                width: calc(33.333% - 16px);
+            }
+            .new {
+                width: calc(25% - 18px);
+            }
+            .center {
+                max-width: 300px;
+            }
+            .banner-div {
+                gap: 10px;
+            }
+            .banner-div>div {
+                width: 160px;
+                height: 80px;
+            }
+            .banner-div img {
+                width: 160px;
+                height: 80px;
+            }
+            .banner-div>div:hover {
+                width: 180px;
+                height: 90px;
+            }
+            .banner-div>div:hover>img {
+                width: 180px;
+                height: 90px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .box {
+                width: calc(50% - 12px);
+            }
+            .new {
+                width: calc(33.333% - 16px);
+            }
+            .left {
+                gap: 10px;
+            }
+            .left>a span {
+                display: none;
+            }
+            .right {
+                gap: 8px;
+            }
+            .right>a span {
+                display: none;
+            }
+            .banner {
+                height: 300px;
+            }
+            .banner-div {
+                bottom: 20px;
+            }
+            .banner-div>div {
+                width: 120px;
+                height: 60px;
+            }
+            .banner-div img {
+                width: 120px;
+                height: 60px;
+            }
+            .banner-div>div:hover {
+                width: 140px;
+                height: 70px;
+            }
+            .banner-div>div:hover>img {
+                width: 140px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .box {
+                width: 100%;
+            }
+            .new {
+                width: calc(50% - 12px);
+            }
+            .center {
+                display: none;
+            }
+            .banner-div {
+                flex-wrap: wrap;
+                height: auto;
+                bottom: 10px;
+            }
+            .banner-div>div {
+                width: 45%;
+                margin-bottom: 10px;
+            }
+            .banner-div img {
+                width: 100%;
+                height: 80px;
+            }
+            .banner-div>div:hover {
+                width: 100%;
+                height: 90px;
+            }
+            .banner-div>div:hover>img {
+                width: 100%;
+                height: 90px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 头部导航 -->
+    <div class="head">
+        <div class="left">
+            <a href="">
+                <img src="https://img0.baidu.com/it/u=3556771717,4275227855&fm=253&fmt=auto&app=138&f=PNG?w=400&h=194"
+                    alt="B站logo">
+                <span>首页</span>
+            </a>
+            <a href=""><span>番剧</span></a>
+            <a href=""><span>直播</span></a>
+            <a href=""><span>游戏中心</span></a>
+            <a href=""><span>会员购</span></a>
+            <a href=""><span>漫画</span></a>
+            <a href=""><span>赛事</span></a>
+            <a href=""><span>运动会</span></a>
+            <a href="">
+                <img src="https://pic.wk2.com/up/2022-6/2022615858131894.png" alt="下载">
+                <span>下载客户端</span>
+            </a>
+        </div>
+        <div class="center">
+            <input type="text" placeholder="精灵宝可梦">
+        </div>
+        <div class="right">
+            <div>登录</div>
+            <a href="">
+                <i class="fa fa-diamond" style="font-size:20px"></i>
+                <span>大会员</span>
+                <span class="badge">9+</span>
+            </a>
+            <a href="">
+                <i class="fa fa-bell" style="font-size:20px"></i>
+                <span>消息</span>
+                <span class="badge">5</span>
+            </a>
+            <a href="">
+                <i class="fa fa-rss" style="font-size:20px"></i>
+                <span>动态</span>
+            </a>
+            <a href="">
+                <i class="fa fa-star" style="font-size:20px"></i>
+                <span>收藏</span>
+            </a>
+            <a href="">
+                <i class="fa fa-history" style="font-size:20px"></i>
+                <span>历史</span>
+            </a>
+            <a href="">
+                <i class="fa fa-creative-commons" style="font-size:20px"></i>
+                <span>创作中心</span>
+            </a>
+            <a href="">
+                <i class="fa fa-upload" style="font-size:20px"></i>
+                <span>投稿</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 轮播横幅 -->
+    <div class="banner">
+        <div class="banner-div">
+            <div class="select active">
+                <img
+                    src="https://miaobi-lite.bj.bcebos.com/miaobi/5mao/b%275LuA5LmI5Yqo54mp6IOG5a2Q5pyA5bCPXzE3MzQxMjAzOTcuNTY4NjkxNw%3D%3D%27/0.png">
+                <div>胆小党</div>
+            </div>
+            <div class="select">
+                <img src="https://i1.hdslb.com/bfs/archive/b1091cade42fcd5ebeba0b8ad1d6ec84a19bb359.jpg">
+                <div>鬼畜党</div>
+            </div>
+            <div class="select">
+                <img src="https://static.zitijia.com/shici/ci/10440_1611564797.jpg">
+                <div>胆大党</div>
+            </div>
+            <div class="select">
+                <img src="https://img1.baidu.com/it/u=2858449043,546234253&fm=253&app=138&f=JPEG?w=800&h=800">
+                <div>漫画党</div>
+            </div>
+            <div class="select">
+                <img
+                    src="https://pic.rmb.bdstatic.com/bjh/3f1158b6ab55/250224/d3643773c0348216d97f947e581f2eb7.jpeg">
+                <div>二次元党</div>
+            </div>
+            <div class="select">
+                <img
+                    src="https://pic.kts.g.mi.com/6b6b3dfd912938b006ee5ea6be7b66483272414849169652664.jpg">
+                <div>手游党</div>
+            </div>
+            <div class="select">
+                <img src="https://qcloud.dpfile.com/pc/n2EOwx5JpDt9IPQaYbceAWjFzkjSeFxvUWLFVuc7kCV1UWbsHlImJi6BIrayKMst.jpg">
+                <div>桌游党</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新番推荐 -->
+    <div class="title-wrap">
+        <div class="title">新番推荐</div>
+    </div>
+    <div class="new-container">
+        <div class="new">
+            <img src="https://img1.baidu.com/it/u=1203574558,1213685836&fm=253&app=138&f=JPEG?w=800&h=1135" alt="">
+            <div>宝可梦 地平线(中配)</div>
+            <div>更新至于第38话</div>
+        </div>
+        <div class="new">
+            <img src="https://bkimg.cdn.bcebos.com/pic/738b4710b912c8fc3ed37e94f3039245d6882143" alt="">
+            <div>礼盒(塔库达配)</div>
+            <div>更新至于第78话</div>
+        </div>
+        <div class="new">
+            <img
+                src="https://t10.baidu.com/it/u=2782721565,272716002&fm=30&app=106&f=JPEG?w=640&h=700&s=2DDD668640036BE57B9EB7650300806C"
+                alt="">
+            <div>熊出没(中配)</div>
+            <div>更新至于第91话</div>
+        </div>
+        <div class="new">
+            <img src="https://i0.hdslb.com/bfs/archive/a5ca9e895775b6bbf9757f4b104c2ef676eb0410.jpg" alt="">
+            <div>哆啦A梦(中配)</div>
+            <div>更新至于第114话</div>
+        </div>
+        <div class="new">
+            <img src="https://pic.rmb.bdstatic.com/bjh/240102/52b69a968e0a9af3d7ac344d9aad23b29245.png@h_1280" alt="">
+            <div>海绵宝宝(中配)</div>
+            <div>更新至于第514话</div>
+        </div>
+        <div class="new">
+            <img src="https://bkimg.cdn.bcebos.com/pic/7af40ad162d9f2d3488a142eabec8a136227cc53" alt="">
+            <div>成龙历险记(中配)</div>
+            <div>更新至于第1919话</div>
+        </div>
+        <div class="new">
+            <img
+                src="https://t15.baidu.com/it/u=312674935,290970216&fm=225&app=113&f=PNG?w=875&h=546&s=A71613CBCC411A4D64F801B703005002"
+                alt="">
+            <div>好康的(法配)</div>
+            <div>更新至于第810话</div>
+        </div>
+        <div class="new">
+            <img src="https://q6.itc.cn/images01/20250821/6fdc4c7ca3354e898158fd6c8c9c6cde.png" alt="">
+            <div>鬼畜(水友配)</div>
+            <div>更新至于第N话</div>
+        </div>
+        <div class="new">
+            <img src="https://img.imgtop.top/1712/09/10/mlaqso4gj0igqgc.jpg.jpg" alt="">
+            <div>开心超人</div>
+            <div>更新至于第0001话</div>
+        </div>
+        <div class="new">
+            <img src="https://i2.hdslb.com/bfs/archive/bfa0190e836cf36c8a95fd1f246841a9485289b4.jpg" alt="">
+            <div>成都超人(中配)</div>
+            <div>更新至于地牢话</div>
+        </div>
+        <!-- 新增新番内容 -->
+        <div class="new">
+            <img src="https://b0.bdstatic.com/45f78a519216e999903e2e8e3a7ce40b.jpg" alt="">
+            <div>咒术回战 第二季</div>
+            <div>更新至于第23话</div>
+        </div>
+        <div class="new">
+            <img src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fci.xiaohongshu.com%2F7f42c159-46c0-6879-b03d-33e0707c305d%3FimageView2%2F2%2Fw%2F1080%2Fformat%2Fjpg&refer=http%3A%2F%2Fci.xiaohongshu.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1767763434&t=7073eda85fe583f0af99b37dcb0831df" alt="">
+            <div>间谍过家家 第二季</div>
+            <div>更新至于第18话</div>
+        </div>
+        <div class="new">
+            <img src="https://gips2.baidu.com/it/u=2971928310,1304839691&fm=3074&app=3074&f=JPEG?w=1304&h=1689&type=normal&func=T" alt="">
+            <div>电锯人</div>
+            <div>更新至于第12话</div>
+        </div>
+        <div class="new">
+            <img src="https://img1.baidu.com/it/u=3190719309,923845226&fm=253&app=138&f=JPEG?w=800&h=1085" alt="">
+            <div>海贼王</div>
+            <div>更新至于第1108话</div>
+        </div>
+    </div>
+
+    <!-- 热播推荐 -->
+    <div class="title-wrap">
+        <div class="top_title">热播推荐</div>
+    </div>
+    <div class="container"></div>
+
+    <!-- 加载动画 -->
+    <div class="loading">
+        <i class="fa fa-spinner"></i>
+        <p>正在加载更多视频...</p>
+    </div>
+
+    <!-- 回到顶部按钮 -->
+    <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+    </div>
+
+    <script>
+        // 视频播放/暂停功能优化
+        function playVideo(video) {
+            // 先显示播放状态
+            $(video).addClass('play');
+            // 播放视频（处理自动播放限制）
+            video.play().then(() => {
+                console.log("视频播放成功");
+                // 隐藏播放按钮
+                $(video).parent().css('cursor', 'default');
+            }).catch(err => {
+                console.log("自动播放失败，需要用户交互:", err);
+                // 显示播放按钮，提示用户点击
+                $(video).parent().click(function() {
+                    video.play().catch(err => {
+                        console.log("用户点击后播放仍失败:", err);
+                    });
+                });
+            });
+        }
+
+        function pauseVideo(video) {
+            video.pause();
+            $(video).removeClass('play');
+            $(video).parent().css('cursor', 'pointer');
+        }
+
+        // 横幅切换效果
+        $(".select").mouseenter(function () {
+            let imgUrl = $(this).children("img").attr("src");
+            $(".banner").css("background-image", `url(${imgUrl})`);
+            // 重置所有卡片样式
+            $(".select").removeClass("active");
+            $(this).addClass("active");
+        });
+
+        // 初始化加载数据 - 修复page从1开始
+        let page = 1; // 初始页码改为1
+        let size = 16;
+        let isLoading = false; // 防止重复加载
+        
+        // 优化：提供多个可用的测试视频源
+        const videoSources = [
+            "https://www.w3school.com.cn/i/movie.mp4",
+            "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8",
+            "https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-720p.mp4",
+            "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/720/Big_Buck_Bunny_720_10s_1MB.mp4"
+        ];
+        
+        // 优化：创建不重复的测试视频数据
+        const videoTestData = [
+            {
+                cover: "https://via.placeholder.com/300x180/FF6B6B/FFFFFF?text=游戏攻略",
+                title: "2025最新游戏攻略大全，新手必看！",
+                author: "游戏大神",
+                play: "28.7万",
+                danmaku: "8923",
+                like: "15678",
+                duration: "12:45",
+                avatar: "https://via.placeholder.com/40x40/FF6B6B/FFFFFF?text=游",
+                videoUrl: videoSources[0]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/4ECDC4/FFFFFF?text=动漫解说",
+                title: "咒术回战最新剧情深度解析，伏笔全揭秘",
+                author: "动漫菌",
+                play: "45.2万",
+                danmaku: "12567",
+                like: "28901",
+                duration: "18:20",
+                avatar: "https://via.placeholder.com/40x40/4ECDC4/FFFFFF?text=漫",
+                videoUrl: videoSources[1]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/FFD166/000000?text=美食制作",
+                title: "超简单的日式拉面做法，在家也能轻松做",
+                author: "吃货研究所",
+                play: "18.9万",
+                danmaku: "5678",
+                like: "9876",
+                duration: "08:58",
+                avatar: "https://via.placeholder.com/40x40/FFD166/000000?text=吃",
+                videoUrl: videoSources[2]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/6A0572/FFFFFF?text=科技测评",
+                title: "2025旗舰手机横评，10款机型详细对比",
+                author: "数码先锋",
+                play: "32.5万",
+                danmaku: "7890",
+                like: "16789",
+                duration: "24:15",
+                avatar: "https://via.placeholder.com/40x40/6A0572/FFFFFF?text=数",
+                videoUrl: videoSources[3]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/1A535C/FFFFFF?text=音乐翻唱",
+                title: "全网爆火的《花海》翻唱，开口跪！",
+                author: "音乐小王子",
+                play: "56.8万",
+                danmaku: "18901",
+                like: "32456",
+                duration: "04:30",
+                avatar: "https://via.placeholder.com/40x40/1A535C/FFFFFF?text=音",
+                videoUrl: videoSources[0]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/F72585/FFFFFF?text=搞笑集锦",
+                title: "2025爆笑瞬间合集，不笑算我输！",
+                author: "快乐源泉",
+                play: "89.7万",
+                danmaku: "25678",
+                like: "45678",
+                duration: "15:12",
+                avatar: "https://via.placeholder.com/40x40/F72585/FFFFFF?text=笑",
+                videoUrl: videoSources[1]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/4361EE/FFFFFF?text=知识科普",
+                title: "宇宙冷知识Top10，颠覆你的认知",
+                author: "科普君",
+                play: "23.4万",
+                danmaku: "6789",
+                like: "12345",
+                duration: "11:45",
+                avatar: "https://via.placeholder.com/40x40/4361EE/FFFFFF?text=科",
+                videoUrl: videoSources[2]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/FF9F1C/FFFFFF?text=旅行vlog",
+                title: "日本北海道7天6晚自由行全攻略",
+                author: "旅行日记",
+                play: "19.8万",
+                danmaku: "4567",
+                like: "8901",
+                duration: "28:50",
+                avatar: "https://via.placeholder.com/40x40/FF9F1C/FFFFFF?text=旅",
+                videoUrl: videoSources[3]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/7209B7/FFFFFF?text=健身教学",
+                title: "居家健身教程，30天练出马甲线",
+                author: "健身教练",
+                play: "15.6万",
+                danmaku: "3456",
+                like: "7890",
+                duration: "14:25",
+                avatar: "https://via.placeholder.com/40x40/7209B7/FFFFFF?text=健",
+                videoUrl: videoSources[0]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/560BAD/FFFFFF?text=编程教学",
+                title: "Python零基础入门到精通，保姆级教程",
+                author: "编程大佬",
+                play: "41.2万",
+                danmaku: "9876",
+                like: "18901",
+                duration: "45:30",
+                avatar: "https://via.placeholder.com/40x40/560BAD/FFFFFF?text=程",
+                videoUrl: videoSources[1]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/4CC9F0/FFFFFF?text=影视解说",
+                title: "《流浪地球3》剧情预测，细节全解析",
+                author: "影评人",
+                play: "38.9万",
+                danmaku: "8765",
+                like: "15678",
+                duration: "22:18",
+                avatar: "https://via.placeholder.com/40x40/4CC9F0/FFFFFF?text=影",
+                videoUrl: videoSources[2]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/38B000/FFFFFF?text=宠物日常",
+                title: "治愈系猫咪日常，萌化你的心",
+                author: "铲屎官",
+                play: "27.5万",
+                danmaku: "7654",
+                like: "10987",
+                duration: "07:42",
+                avatar: "https://via.placeholder.com/40x40/38B000/FFFFFF?text=宠",
+                videoUrl: videoSources[3]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/E07A5F/FFFFFF?text=手工DIY",
+                title: "超美的滴胶手作教程，新手也能学会",
+                author: "手工达人",
+                play: "12.8万",
+                danmaku: "2345",
+                like: "6789",
+                duration: "16:55",
+                avatar: "https://via.placeholder.com/40x40/E07A5F/FFFFFF?text=手",
+                videoUrl: videoSources[0]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/800F2F/FFFFFF?text=汽车评测",
+                title: "2025新款特斯拉Model Y全面测评",
+                author: "汽车达人",
+                play: "34.7万",
+                danmaku: "8765",
+                like: "14567",
+                duration: "32:10",
+                avatar: "https://via.placeholder.com/40x40/800F2F/FFFFFF?text=车",
+                videoUrl: videoSources[1]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/2B9348/FFFFFF?text=美妆教程",
+                title: "日常通勤淡妆教程，5分钟快速出门",
+                author: "美妆博主",
+                play: "21.9万",
+                danmaku: "6543",
+                like: "9876",
+                duration: "09:35",
+                avatar: "https://via.placeholder.com/40x40/2B9348/FFFFFF?text=美",
+                videoUrl: videoSources[2]
+            },
+            {
+                cover: "https://via.placeholder.com/300x180/9D4EDD/FFFFFF?text=职场技巧",
+                title: "职场沟通技巧，让你少走5年弯路",
+                author: "职场导师",
+                play: "17.3万",
+                danmaku: "4321",
+                like: "8765",
+                duration: "13:48",
+                avatar: "https://via.placeholder.com/40x40/9D4EDD/FFFFFF?text=职",
+                videoUrl: videoSources[3]
+            }
+        ];
+
+        getData();
+
+        // 获取视频数据
+        function getData() {
+            if (isLoading) return;
+            isLoading = true;
+            $(".loading").show();
+            
+            // 直接使用测试数据，确保视频能播放
+            createFallbackBoxes();
+            isLoading = false;
+            setTimeout(() => {
+                $(".loading").hide();
+            }, 500);
+            
+            // 注释掉API请求，优先使用可播放的测试视频
+            /*
+            $.get(`https://api.apiopen.top/api/getHaoKanVideo?page=${page}&size=${size}`, function (res) {
+                page++; // 请求后再自增
+                if (res.code === 200 && res.result && res.result.list && res.result.list.length > 0) {
+                    createBox(res);
+                } else {
+                    // 接口无数据时，使用不重复的测试数据填充
+                    createFallbackBoxes();
+                    $(".loading").html('<i class="fa fa-spinner"></i><p style="color:#999">没有更多内容了</p>');
+                }
+                isLoading = false;
+                setTimeout(() => {
+                    $(".loading").hide();
+                }, 500);
+            }).fail(function () {
+                // 请求失败时，使用不重复的测试数据填充
+                createFallbackBoxes();
+                $(".loading").html('<i class="fa fa-exclamation-triangle"></i><p style="color:#fb7299">加载失败，已显示测试视频</p>');
+                isLoading = false;
+                setTimeout(() => {
+                    $(".loading").hide();
+                }, 800);
+            });
+            */
+        }
+
+        // 创建视频卡片（主逻辑）- 优化版
+        function createBox(res) {
+            for (let i = 0; i < res.result.list.length; i++) {
+                let item = res.result.list[i];
+                // 验证视频URL有效性
+                let testData = videoTestData[i % videoTestData.length];
+                let videoUrl = item.playUrl && item.playUrl.includes('http') ? item.playUrl : testData.videoUrl;
+                
+                // 使用不重复的测试数据补充
+                let coverUrl = item.coverUrl || testData.cover;
+                let title = item.title || testData.title;
+                let author = item.userName || testData.author;
+                let duration = testData.duration;
+                
+                let box = $(`
+                    <div class="box" style="animation-delay: ${i * 0.1}s">
+                        <div class="video-wrapper">
+                            <video 
+                                onmouseenter="playVideo(this)" 
+                                onmouseleave="pauseVideo(this)"
+                                poster="${coverUrl}"
+                                src="${videoUrl}"
+                                muted
+                                preload="auto"
+                                controls>
+                                您的浏览器不支持HTML5视频播放
+                            </video>
+                            <div class="video-meta">${duration}</div>
+                        </div>
+                        <div class="content">
+                            <img src="${item.userPic || testData.avatar}" alt="${author}">
+                            <div class="c_left">
+                                <div>${title}</div>
+                                <div>${author}</div>
+                                <div class="video-stats">
+                                    <span><i class="fa fa-play"></i>${testData.play}</span>
+                                    <span><i class="fa fa-comment-o"></i>${testData.danmaku}</span>
+                                    <span><i class="fa fa-heart-o"></i>${testData.like}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                
+                // 监听视频加载失败事件，自动切换备用源
+                box.find('video').on('error', function() {
+                    let currentIndex = videoSources.indexOf($(this).attr('src'));
+                    let nextIndex = (currentIndex + 1) % videoSources.length;
+                    $(this).attr('src', videoSources[nextIndex]);
+                    $(this).load();
+                    
+                    // 如果所有源都失败，显示错误提示
+                    $(this).on('error', function() {
+                        $(this).replaceWith(`
+                            <div class="video-error">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                <div>视频加载失败</div>
+                                <div style="font-size:10px;margin-top:5px">点击重试</div>
+                            </div>
+                        `);
+                        // 点击错误提示重新加载
+                        $('.video-error').click(function() {
+                            let videoHtml = `
+                                <video 
+                                    onmouseenter="playVideo(this)" 
+                                    onmouseleave="pauseVideo(this)"
+                                    poster="${coverUrl}"
+                                    src="${videoSources[0]}"
+                                    muted
+                                    preload="auto"
+                                    controls>
+                                    您的浏览器不支持HTML5视频播放
+                                </video>
+                            `;
+                            $(this).replaceWith(videoHtml);
+                        });
+                    });
+                });
+                
+                // 添加到容器
+                box.appendTo('.container');
+            }
+        }
+
+        // 创建备用测试视频卡片 - 使用完全不重复的数据
+        function createFallbackBoxes() {
+            if ($('.container .box').length > 0) return; // 已有内容则不重复创建
+            
+            for (let i = 0; i < videoTestData.length; i++) {
+                let data = videoTestData[i];
+                let box = $(`
+                    <div class="box" style="animation-delay: ${i * 0.1}s">
+                        <div class="video-wrapper">
+                            <video 
+                                onmouseenter="playVideo(this)" 
+                                onmouseleave="pauseVideo(this)"
+                                poster="${data.cover}"
+                                src="${data.videoUrl}"
+                                muted
+                                preload="auto"
+                                controls>
+                                您的浏览器不支持HTML5视频播放
+                            </video>
+                            <div class="video-meta">${data.duration}</div>
+                        </div>
+                        <div class="content">
+                            <img src="${data.avatar}" alt="${data.author}">
+                            <div class="c_left">
+                                <div>${data.title}</div>
+                                <div>${data.author}</div>
+                                <div class="video-stats">
+                                    <span><i class="fa fa-play"></i>${data.play}</span>
+                                    <span><i class="fa fa-comment-o"></i>${data.danmaku}</span>
+                                    <span><i class="fa fa-heart-o"></i>${data.like}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+                
+                // 监听视频加载失败事件，自动切换备用源
+                box.find('video').on('error', function() {
+                    let currentIndex = videoSources.indexOf($(this).attr('src'));
+                    let nextIndex = (currentIndex + 1) % videoSources.length;
+                    $(this).attr('src', videoSources[nextIndex]);
+                    $(this).load();
+                    
+                    // 如果所有源都失败，显示错误提示
+                    $(this).on('error', function() {
+                        $(this).replaceWith(`
+                            <div class="video-error">
+                                <i class="fa fa-exclamation-triangle"></i>
+                                <div>视频加载失败</div>
+                                <div style="font-size:10px;margin-top:5px">点击重试</div>
+                            </div>
+                        `);
+                        // 点击错误提示重新加载
+                        $('.video-error').click(function() {
+                            let videoHtml = `
+                                <video 
+                                    onmouseenter="playVideo(this)" 
+                                    onmouseleave="pauseVideo(this)"
+                                    poster="${data.cover}"
+                                    src="${videoSources[0]}"
+                                    muted
+                                    preload="auto"
+                                    controls>
+                                    您的浏览器不支持HTML5视频播放
+                                </video>
+                            `;
+                            $(this).replaceWith(videoHtml);
+                        });
+                    });
+                });
+                
+                box.appendTo('.container');
+            }
+        }
+
+        // 滚动加载更多
+        $(window).scroll(function () {
+            var remainingHeight = $(document).height() - $(window).scrollTop() - $(window).height();
+            if (remainingHeight <= 300 && !isLoading) {
+                getData();
+            }
+
+            // 显示/隐藏回到顶部按钮
+            if ($(window).scrollTop() > 500) {
+                $(".back-to-top").addClass("show");
+            } else {
+                $(".back-to-top").removeClass("show");
+            }
+        });
+
+        // 回到顶部功能
+        $(".back-to-top").click(function () {
+            $('html, body').animate({
+                scrollTop: 0
+            }, 800, 'easeOutQuart');
+        });
+
+        // 搜索框回车搜索
+        $(".center>input").keypress(function (e) {
+            if (e.which === 13) {
+                let keyword = $(this).val().trim();
+                if (keyword) {
+                    alert(`正在搜索：${keyword}`);
+                    // 这里可以添加实际的搜索逻辑
+                }
+            }
+        });
+
+        // 登录按钮点击事件
+        $(".right>div").click(function () {
+            alert("请登录您的账号");
+        });
+
+        // 处理图片加载失败
+        $("img").on("error", function () {
+            $(this).attr("src", "https://via.placeholder.com/" + $(this).width() + "x" + $(this).height() + "/eee/999?text=图片加载失败");
+        });
+
+        // 平滑滚动
+        $('a[href^="#"]').on('click', function(e) {
+            e.preventDefault();
+            var target = $(this.getAttribute('href'));
+            if (target.length) {
+                $('html, body').stop().animate({
+                    scrollTop: target.offset().top
+                }, 800);
+            }
+        });
+    </script>
+</body>
+</html>

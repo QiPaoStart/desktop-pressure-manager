@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日计划表</title>
+    <!-- 引入Tailwind CSS（指定版本，提升稳定性） -->
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <!-- 引入Font Awesome图标（指定版本） -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- 自定义Tailwind配置（优化结构，新增变量） -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // 主色调：深紫蓝
+                        secondary: '#EC4899', // 辅助色：粉色
+                        accent: '#10B981', // 强调色：绿色
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        ai: '#0EA5E9', // AI模块专属色：天蓝色（保留但不使用）
+                        neutral: '#F1F5F9' // 中性色：浅灰蓝
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        song: ['SimSun', '宋体', 'serif']
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02)',
+                        'hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'active': '0 5px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'ai': '0 10px 30px -5px rgba(14, 165, 233, 0.15)',
+                        'card': '0 4px 20px rgba(0, 0, 0, 0.08)',
+                        'input': '0 2px 8px rgba(79, 70, 229, 0.08)' // 新增输入框阴影
+                    },
+                    animation: {
+                        'pulse-soft': 'pulse-soft 2s infinite',
+                        'fade-out': 'fadeOut 1.5s forwards',
+                        'bounce-short': 'bounce 0.5s ease-in-out',
+                        'typing': 'typing 1.5s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'ripple': 'ripple 0.6s linear',
+                        'scale-down': 'scaleDown 0.2s ease-out forwards',
+                        'scale-up': 'scaleUp 0.2s ease-out forwards',
+                        'breath': 'breath 3s ease-in-out infinite' // 新增呼吸动画
+                    },
+                    keyframes: {
+                        'pulse-soft': {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.8 }
+                        },
+                        'fadeOut': {
+                            '0%': { opacity: 1, transform: 'scale(1)' },
+                            '100%': { opacity: 0, transform: 'scale(1.2)' }
+                        },
+                        'typing': {
+                            '0%, 100%': { opacity: 0.4 },
+                            '50%': { opacity: 1 }
+                        },
+                        'float': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' }
+                        },
+                        'ripple': {
+                            'to': { transform: 'scale(4)', opacity: 0 }
+                        },
+                        'scaleDown': {
+                            '0%': { transform: 'scale(1)' },
+                            '100%': { transform: 'scale(0.95)' }
+                        },
+                        'scaleUp': {
+                            '0%': { transform: 'scale(0.95)' },
+                            '100%': { transform: 'scale(1)' }
+                        },
+                        'breath': { // 新增呼吸动画，提升视觉层次感
+                            '0%, 100%': { transform: 'scale(1)', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)' },
+                            '50%': { transform: 'scale(1.01)', boxShadow: '0 6px 24px rgba(79, 70, 229, 0.12)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类（优化命名，增强复用性） -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto { content-visibility: auto; }
+            .text-shadow { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+            .bg-blur { backdrop-filter: blur(8px); }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.92);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }
+            .gradient-text {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+            }
+            /* 装饰形状统一管理 */
+            .decor-shape {
+                @apply fixed pointer-events-none z-0 animate-fade-out;
+            }
+            .decor-circle { @apply decor-shape rounded-full; }
+            .decor-triangle {
+                @apply decor-shape w-0 h-0 border-l-[15px] border-r-[15px] border-b-[25px] border-l-transparent border-r-transparent;
+            }
+            .decor-star {
+                @apply decor-shape clip-path-[polygon(50%_0%,61%_35%,98%_35%,68%_57%,79%_91%,50%_70%,21%_91%,32%_57%,2%_35%,39%_35%)];
+            }
+            /* 快捷键样式优化 */
+            .keyboard-shortcut {
+                @apply inline-flex items-center justify-center px-3 py-1 text-sm font-medium bg-primary/10 text-primary rounded-full border border-primary/20;
+            }
+            .shortcut-toast {
+                @apply fixed bottom-4 right-4 bg-dark text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-y-20 opacity-0 transition-all duration-300;
+            }
+            /* 通用卡片悬停效果 */
+            .card-hover {
+                @apply transition-all duration-500 hover:shadow-hover hover:-translate-y-1;
+            }
+            /* 按钮波纹效果 - 优化层级和位置 */
+            .btn-ripple {
+                @apply relative overflow-hidden;
+            }
+            .btn-ripple::after {
+                content: "";
+                @apply absolute rounded-full bg-white/30 animate-ripple scale-0;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) scale(0);
+            }
+            /* 按钮按下状态 */
+            .btn-active {
+                @apply shadow-active transform scale-95 !important;
+                transition: all 0.15s ease-out;
+            }
+            /* 输入框组样式 */
+            .input-group {
+                @apply flex items-center bg-white/95 rounded-xl border border-gray-200 shadow-input transition-all duration-300 hover:border-primary/30 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20;
+            }
+        }
+    </style>
+    
+    <style>
+        /* 基础样式优化 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* 滚动条美化（适配所有浏览器） */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(79, 70, 229, 0.4);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(79, 70, 229, 0.6); }
+        
+        /* 背景优化：减少重绘，添加加载过渡 */
+        body {
+            background-image: url(https://img2.baidu.com/it/u=647110693,3840994403&fm=253&fmt=auto&app=138&f=PNG?w=1016&h=500);
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 2rem 1rem;
+            position: relative;
+            opacity: 0;
+            animation: bodyFadeIn 0.8s ease forwards;
+        }
+        
+        @keyframes bodyFadeIn {
+            to { opacity: 1; }
+        }
+        
+        /* 渐变遮罩优化：避免覆盖内容 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.05), rgba(14, 165, 233, 0.05));
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        /* 核心内容层级统一 */
+        .boxx, .container, .buttons, .main-content {
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* 计划项交互增强 */
+        .plan-item:hover .info i {
+            transform: scale(1.2);
+            transition: transform 0.3s ease;
+        }
+        
+        /* 优化加号按钮的点击反馈 */
+        #add-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        #add-btn i {
+            transition: transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #add-btn:active i {
+            transform: scale(0.9);
+        }
+        
+        /* 按钮点击反馈优化 */
+        .button1, .button2, .button3, .button4, .button5 {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* 输入框样式优化 */
+        .plan-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        /* 整体视觉和谐性优化 */
+        .container {
+            animation: breath 4s ease-in-out infinite;
+        }
+        
+        /* 计划列表项间距优化 */
+        #plan-list {
+            gap: 0.75rem;
+        }
+        
+        .plan-item {
+            border-radius: 1rem;
+            transition: all 0.4s ease;
+        }
+    </style>
+</head>
+<body class="font-sans text-dark antialiased">
+    <!-- 装饰元素增强（优化性能，减少DOM节点） -->
+    <div class="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-accent z-50"></div>
+    <div class="fixed -top-20 -right-20 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse-soft"></div>
+    <div class="fixed -bottom-30 -left-30 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse-soft" style="animation-delay: 1s;"></div>
+    <div class="fixed top-1/3 right-1/4 w-64 h-64 bg-ai/5 rounded-full blur-3xl animate-pulse-soft" style="animation-delay: 0.5s;"></div>
+    <div class="fixed bottom-1/4 left-1/3 w-72 h-72 bg-accent/5 rounded-full blur-3xl animate-pulse-soft" style="animation-delay: 1.5s;"></div>
+    
+    <!-- 点击效果容器（优化命名） -->
+    <div id="decor-shape-container" class="fixed inset-0 pointer-events-none z-0"></div>
+    
+    <!-- 快捷键提示 Toast（移除AI相关） -->
+    <div id="shortcut-toast" class="shortcut-toast">
+        <i class="fa fa-keyboard-o mr-2"></i>
+        <span>按 <span class="keyboard-shortcut">Enter</span> 添加计划</span>
+    </div>
+    
+    <!-- 主内容区：计划表居中显示 -->
+    <div class="main-content max-w-4xl mx-auto">
+        <!-- 倒计时模块（优化结构，增强语义） -->
+        <div class="boxx glass-effect rounded-3xl shadow-card p-8 md:p-12 mb-12 card-hover">
+            <div class="text-center mb-6 md:mb-8">
+                <h2 class="text-[clamp(2rem,5vw,3.5rem)] font-bold gradient-text bg-gradient-to-r from-primary to-secondary mb-4 text-shadow">
+                    计划倒计时
+                </h2>
+                <p class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-primary/80 mb-2 animate-float">
+                    Hurry Up
+                </p>
+                <p class="text-[clamp(1rem,2vw,1.5rem)] font-song text-dark/80 mb-8">
+                    距离今天结束还剩
+                </p>
+                
+                <!-- 倒计时数字（优化布局，增强响应式） -->
+                <div class="flex justify-center gap-4 md:gap-6 items-center flex-wrap">
+                    <div class="hour w-20 h-20 md:w-24 md:h-24 bg-primary rounded-xl flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg transform transition-all duration-300 hover:scale-105 card-hover">
+                        00
+                    </div>
+                    <span class="text-2xl md:text-3xl font-bold text-primary animate-pulse-soft">:</span>
+                    <div class="minute w-20 h-20 md:w-24 md:h-24 bg-primary rounded-xl flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg transform transition-all duration-300 hover:scale-105 card-hover">
+                        00
+                    </div>
+                    <span class="text-2xl md:text-3xl font-bold text-primary animate-pulse-soft" style="animation-delay: 0.5s;">:</span>
+                    <div class="second w-20 h-20 md:w-24 md:h-24 bg-primary rounded-xl flex items-center justify-center text-white text-2xl md:text-3xl font-bold shadow-lg transform transition-all duration-300 hover:scale-105 card-hover">
+                        00
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 计划表模块（优化可访问性和视觉和谐性） -->
+        <div class="container glass-effect rounded-3xl shadow-card p-6 md:p-8 mb-12 card-hover">
+            <div class="text-center mb-8">
+                <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold gradient-text bg-gradient-to-r from-accent to-primary font-song text-shadow">
+                    今日计划表
+                </h2>
+                <!-- 快捷键提示（移除AI相关） -->
+                <p class="text-sm text-gray-500 mt-2 bg-neutral/50 px-4 py-2 rounded-full inline-block">
+                    <i class="fa fa-info-circle text-primary/70 mr-1"></i>
+                    快捷键：<span class="keyboard-shortcut">Enter</span> 添加计划
+                </p>
+            </div>
+            
+            <!-- 输入框组（重构为flex布局，提升视觉和谐性） -->
+            <div class="input-group mb-8 w-full h-14">
+                <!-- 输入框 - 无样式，由外层input-group统一控制 -->
+                <input type="text" 
+                       placeholder="请输入今日计划（例如：9:00 健身30分钟）..." 
+                       class="plan-input px-6 w-full"
+                       aria-label="添加今日计划">
+                <!-- 加号按钮 - 视觉融合设计 -->
+                <button id="add-btn" class="w-14 h-full bg-primary hover:bg-primary/95 text-white rounded-r-xl flex items-center justify-center shadow-md hover:shadow-primary/20 transition-all duration-300 btn-ripple"
+                        aria-label="添加计划">
+                    <i class="fa fa-plus text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- 计划列表（优化滚动体验和视觉间距） -->
+            <div id="plan-list" class="flex flex-col max-h-[500px] overflow-y-auto pr-2 bg-neutral/20 rounded-xl p-3"
+                 aria-label="今日计划列表">
+                <!-- 计划项示例（优化语义和视觉） -->
+                <div class="plan-item flex items-center justify-between bg-white/90 rounded-xl p-4 shadow-sm hover:shadow-md card-hover">
+                    <div class="info flex items-center gap-3 text-lg">
+                        <i class="fa fa-check-circle text-primary cursor-pointer transition-all duration-300" aria-label="标记完成"></i>
+                        <span>示例计划：完成项目报告</span>
+                    </div>
+                    <button class="delete-btn text-gray-400 hover:text-red-500 transition-all duration-300 btn-ripple active:scale-95 p-2 rounded-full hover:bg-red-50"
+                            aria-label="删除计划">
+                        <i class="fa fa-trash-o text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 功能按钮组（优化按下效果，增强交互反馈） -->
+        <div class="buttons flex flex-wrap justify-center gap-4 md:gap-6 px-4 mb-24 md:mb-16">
+            <button class="button1 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-700 text-white font-medium py-3 px-8 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 active:shadow-active active:translate-y-0 flex items-center gap-2 card-hover btn-ripple">
+                <i class="fa fa-gamepad"></i>
+                <span>扫雷游戏</span>
+            </button>
+            
+            <button class="button2 bg-gradient-to-r from-secondary to-pink-600 hover:from-secondary/90 hover:to-pink-700 text-white font-medium py-3 px-8 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 active:shadow-active active:translate-y-0 flex items-center gap-2 card-hover btn-ripple">
+                <i class="fa fa-coffee"></i>
+                <span>放松一下</span>
+            </button>
+            
+            <button class="button3 bg-gradient-to-r from-accent to-emerald-600 hover:from-accent/90 hover:to-emerald-700 text-white font-medium py-3 px-8 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 active:shadow-active active:translate-y-0 flex items-center gap-2 card-hover btn-ripple">
+                <i class="fa fa-lightbulb-o"></i>
+                <span>AI辅助学习</span>
+            </button>
+            
+            <button class="button4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-3 px-8 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 active:shadow-active active:translate-y-0 flex items-center gap-2 card-hover btn-ripple">
+                <i class="fa fa-arrow-right"></i>
+                <span>社交</span>
+            </button>
+
+            <!-- 新增返回主页按钮（修复原代码未定义的button5） -->
+            <button class="button5 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-medium py-3 px-8 rounded-xl shadow-md transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1 active:shadow-active active:translate-y-0 flex items-center gap-2 card-hover btn-ripple">
+                <i class="fa fa-home"></i>
+                <span>健康生活</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ========== 性能优化：DOM元素缓存 + 模块化 ==========
+        // 全局配置（抽离常量，移除AI相关）
+        const CONFIG = {
+            colors: ['#4F46E5', '#EC4899', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6', '#F43F5E', '#6366F1'],
+            shapeTypes: ['circle', 'triangle', 'star'],
+            deviceBreakpoint: 768,
+            toastDuration: 5000
+        };
+
+        // DOM元素缓存（减少重复查询，移除AI相关）
+        const DOM = {
+            // 核心元素
+            input: document.querySelector('.plan-input'),
+            addBtn: document.getElementById('add-btn'),
+            planList: document.getElementById('plan-list'),
+            shapeContainer: document.getElementById('decor-shape-container'),
+            shortcutToast: document.getElementById('shortcut-toast'),
+            // 功能按钮（保留所有按钮）
+            button1: document.querySelector('.button1'),
+            button2: document.querySelector('.button2'),
+            button3: document.querySelector('.button3'), // 保留AI辅助学习按钮
+            button4: document.querySelector('.button4'),
+            button5: document.querySelector('.button5'),
+            // 倒计时元素
+            hourEl: document.querySelector('.hour'),
+            minuteEl: document.querySelector('.minute'),
+            secondEl: document.querySelector('.second')
+        };
+
+        // 状态管理（抽离全局状态，移除AI相关）
+        const STATE = {
+            isToastShown: false
+        };
+
+        // ========== 工具函数（抽离复用逻辑） ==========
+        /**
+         * HTML转义（防止XSS）
+         * @param {string} unsafe - 原始字符串
+         * @returns {string} 转义后的字符串
+         */
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/\n/g, "<br>");
+        }
+
+        /**
+         * 显示Toast提示
+         * @param {string} content - 提示内容
+         * @param {number} duration - 显示时长
+         */
+        function showToast(content, duration = 2000) {
+            if (STATE.isToastShown) return;
+            
+            STATE.isToastShown = true;
+            DOM.shortcutToast.innerHTML = content;
+            DOM.shortcutToast.classList.remove('translate-y-20', 'opacity-0');
+            DOM.shortcutToast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                DOM.shortcutToast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    STATE.isToastShown = false;
+                }, 300);
+            }, duration);
+        }
+
+        /**
+         * 创建随机装饰形状
+         * @param {number} x - 横坐标
+         * @param {number} y - 纵坐标
+         */
+        function createRandomShape(x, y) {
+            const shapeType = CONFIG.shapeTypes[Math.floor(Math.random() * CONFIG.shapeTypes.length)];
+            const color = CONFIG.colors[Math.floor(Math.random() * CONFIG.colors.length)];
+            const size = Math.floor(Math.random() * 20) + 10;
+            
+            const shape = document.createElement('div');
+            
+            // 根据形状类型设置样式
+            switch(shapeType) {
+                case 'circle':
+                    shape.className = 'decor-circle';
+                    shape.style.width = `${size}px`;
+                    shape.style.height = `${size}px`;
+                    shape.style.backgroundColor = color;
+                    break;
+                case 'triangle':
+                    shape.className = 'decor-triangle';
+                    shape.style.borderBottomColor = color;
+                    const triangleSize = size * 1.5;
+                    shape.style.borderLeftWidth = `${triangleSize/2}px`;
+                    shape.style.borderRightWidth = `${triangleSize/2}px`;
+                    shape.style.borderBottomWidth = `${triangleSize}px`;
+                    break;
+                case 'star':
+                    shape.className = 'decor-star';
+                    shape.style.width = `${size}px`;
+                    shape.style.height = `${size}px`;
+                    shape.style.backgroundColor = color;
+                    break;
+            }
+            
+            // 设置位置
+            shape.style.left = `${x - size/2}px`;
+            shape.style.top = `${y - size/2}px`;
+            
+            // 添加到容器并自动移除
+            DOM.shapeContainer.appendChild(shape);
+            setTimeout(() => {
+                shape.remove();
+            }, 1500);
+        }
+
+        // ========== 计划表功能模块 ==========
+        /**
+         * 添加计划项
+         * @param {string} value - 计划内容
+         */
+        function addPlanItem(value) {
+            if (!value.trim()) return;
+            
+            const planItem = document.createElement('div');
+            planItem.className = 'plan-item flex items-center justify-between bg-white/90 rounded-xl p-4 shadow-sm hover:shadow-md opacity-0 translate-y-2 card-hover';
+            planItem.innerHTML = `
+                <div class="info flex items-center gap-3 text-lg">
+                    <i class="fa fa-check-circle-o text-primary/70 cursor-pointer transition-all duration-300 hover:text-primary" aria-label="标记完成"></i>
+                    <span>${escapeHtml(value)}</span>
+                </div>
+                <button class="delete-btn text-gray-400 hover:text-red-500 transition-all duration-300 btn-ripple active:scale-95 p-2 rounded-full hover:bg-red-50" aria-label="删除计划">
+                    <i class="fa fa-trash-o text-xl"></i>
+                </button>
+            `;
+            
+            DOM.planList.appendChild(planItem);
+            DOM.planList.scrollTop = DOM.planList.scrollHeight;
+            DOM.input.value = '';
+            
+            // 触发入场动画
+            setTimeout(() => {
+                planItem.classList.remove('opacity-0', 'translate-y-2');
+                planItem.classList.add('opacity-100', 'translate-y-0');
+            }, 10);
+        }
+
+        /**
+         * 更新倒计时
+         */
+        function updateCountdown() {
+            const now = new Date();
+            const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            const diff = endOfDay - now;
+            
+            if (diff <= 0) {
+                DOM.hourEl.textContent = '00';
+                DOM.minuteEl.textContent = '00';
+                DOM.secondEl.textContent = '00';
+                return;
+            }
+            
+            const hours = Math.floor(diff / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            
+            // 优化数字显示（补零）
+            DOM.hourEl.textContent = String(hours).padStart(2, '0');
+            DOM.minuteEl.textContent = String(minutes).padStart(2, '0');
+            DOM.secondEl.textContent = String(seconds).padStart(2, '0');
+            
+            // 秒数变化动画
+            DOM.secondEl.classList.add('scale-110');
+            setTimeout(() => {
+                DOM.secondEl.classList.remove('scale-110');
+            }, 500);
+        }
+
+        // ========== 按钮交互优化 ==========
+        /**
+         * 绑定按钮的按下/释放效果
+         * @param {HTMLElement} btn - 按钮元素
+         */
+        function bindButtonInteraction(btn) {
+            if (!btn) return;
+            
+            // 鼠标/触摸按下效果
+            btn.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // 只响应左键
+                btn.classList.add('btn-active');
+            });
+            
+            // 鼠标释放效果
+            btn.addEventListener('mouseup', () => {
+                btn.classList.remove('btn-active');
+            });
+            
+            // 鼠标离开效果
+            btn.addEventListener('mouseleave', () => {
+                btn.classList.remove('btn-active');
+            });
+            
+            // 移动端触摸支持
+            btn.addEventListener('touchstart', () => {
+                btn.classList.add('btn-active');
+            });
+            
+            btn.addEventListener('touchend', () => {
+                btn.classList.remove('btn-active');
+            });
+        }
+
+        // ========== 事件绑定（优化执行时机） ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            // ========== 绑定所有按钮的交互效果 ==========
+            bindButtonInteraction(DOM.addBtn);
+            bindButtonInteraction(DOM.button1);
+            bindButtonInteraction(DOM.button2);
+            bindButtonInteraction(DOM.button3);
+            bindButtonInteraction(DOM.button4);
+            bindButtonInteraction(DOM.button5);
+            
+            // 为删除按钮绑定效果（事件委托）
+            DOM.planList?.addEventListener('mousedown', (e) => {
+                const deleteBtn = e.target.closest('.delete-btn');
+                if (deleteBtn && e.button === 0) {
+                    deleteBtn.classList.add('scale-90');
+                }
+            });
+            
+            DOM.planList?.addEventListener('mouseup', (e) => {
+                const deleteBtn = e.target.closest('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.classList.remove('scale-90');
+                }
+            });
+            
+            DOM.planList?.addEventListener('mouseleave', (e) => {
+                const deleteBtn = e.target.closest('.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.classList.remove('scale-90');
+                }
+            });
+            
+            // ========== 计划表事件 ==========
+            // 点击创建装饰形状（优化性能，排除交互元素）
+            document.addEventListener('click', (e) => {
+                const excludedTags = ['INPUT', 'BUTTON', 'TEXTAREA', 'SELECT', 'I', 'A'];
+                if (excludedTags.includes(e.target.tagName) || 
+                    e.target.closest('.plan-item, .button1, .button2, .button3, .button4, .button5')) {
+                    return;
+                }
+                createRandomShape(e.clientX, e.clientY);
+            });
+            
+            // 添加计划（按钮）
+            DOM.addBtn?.addEventListener('click', () => {
+                addPlanItem(DOM.input.value);
+            });
+            
+            // 添加计划（回车）
+            DOM.input?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    addPlanItem(DOM.input.value);
+                }
+            });
+            
+            // 计划项操作（事件委托，优化性能）
+            DOM.planList?.addEventListener('click', (e) => {
+                const planItem = e.target.closest('.plan-item');
+                if (!planItem) return;
+                
+                // 删除计划
+                if (e.target.closest('.delete-btn')) {
+                    planItem.classList.add('opacity-0', 'translate-x-4');
+                    setTimeout(() => {
+                        planItem.remove();
+                    }, 300);
+                }
+                
+                // 标记完成/未完成
+                const checkIcon = e.target.closest('.fa-check-circle-o, .fa-check-circle');
+                if (checkIcon) {
+                    const text = planItem.querySelector('.info span');
+                    if (checkIcon.classList.contains('fa-check-circle-o')) {
+                        checkIcon.classList.replace('fa-check-circle-o', 'fa-check-circle');
+                        text.classList.add('line-through', 'text-gray-500');
+                    } else {
+                        checkIcon.classList.replace('fa-check-circle', 'fa-check-circle-o');
+                        text.classList.remove('line-through', 'text-gray-500');
+                    }
+                }
+            });
+            
+            // ========== 按钮跳转事件（保留所有按钮跳转） ==========
+            DOM.button1?.addEventListener('click', () => {
+                window.location.href = "saolei.html";
+            });
+            
+            DOM.button2?.addEventListener('click', () => {
+                window.location.href = "大招.html";
+            });
+            
+            DOM.button3?.addEventListener('click', () => {
+                window.location.href = "AI.html"; // 保留AI辅助学习按钮跳转
+            });
+            
+            DOM.button4?.addEventListener('click', () => {
+                window.location.href = "shejiao2.html";
+            });
+            
+            DOM.button5?.addEventListener('click', () => {
+                window.location.href = "index.html";
+            });
+            
+            // ========== 初始化 ==========
+            // 启动倒计时
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+            
+            // 显示快捷键提示（移除AI相关）
+            setTimeout(() => {
+                showToast('<i class="fa fa-keyboard-o mr-2"></i><span>按 <span class="keyboard-shortcut">Enter</span> 添加计划</span>', CONFIG.toastDuration);
+            }, 3000);
+            
+            // 修复按钮波纹效果触发
+            document.querySelectorAll('.btn-ripple').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    // 手动触发波纹动画
+                    const ripple = document.createElement('span');
+                    const rect = this.getBoundingClientRect();
+                    const size = Math.max(rect.width, rect.height);
+                    const x = e.clientX - rect.left - size/2;
+                    const y = e.clientY - rect.top - size/2;
+                    
+                    ripple.style.width = ripple.style.height = `${size}px`;
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    ripple.classList.add('btn-ripple-after');
+                    
+                    this.appendChild(ripple);
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

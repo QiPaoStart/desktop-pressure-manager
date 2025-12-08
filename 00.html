@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        img{
+            width: 200px;
+            height: 300px;
+            position: absolute;
+            transform: rotateX(80deg);
+            transition: all 1s;
+        }
+        .container{
+            width: 400px;
+            position: relative;
+            margin:  260px auto;
+            transform-style: preserve-3d;
+            perspective: 600px;
+        }
+        .container:hover>img:nth-of-type(2){
+             transform:  translateY(-50px) rotateX(80deg);
+        }
+        .container:hover>img:nth-of-type(3){
+             transform:  translateY(-100px) rotateX(80deg);
+        }
+    </style>
+</head>
+<body>
+    <div class="containerss">
+        <img src="https://img2.baidu.com/it/u=2657143038,1065592068&fm=253&app=138&f=JPEG?w=500&h=500" alt="">
+        <img src="https://img2.baidu.com/it/u=2657143038,1065592068&fm=253&app=138&f=JPEG?w=500&h=500" alt="">
+        <img src="https://img2.baidu.com/it/u=2657143038,1065592068&fm=253&app=138&f=JPEG?w=500&h=500" alt="">
+    </div>
+</body>
+</html>

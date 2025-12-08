@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            padding: 0px;
+            margin: 0px;
+        }
+        body{
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        h1{
+            color: #222;
+            font-size: 120px;
+            position: relative;
+        }
+        h1::before{
+            content: "LOADING...";
+            color: #03a9f4;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            width: 0;
+            animation: ani 3s linear infinite;
+        }
+        @keyframes ani{
+               0%{
+                width: 0;
+               }
+               100%{
+                width: 100%;
+               }
+        }
+    </style>
+</head>
+<body>
+    <h1>LOADING...</h1>
+</body>
+<script>
+    document.addEventListener("click",function(){
+            window.location.href ="3.html";
+    })
+</script>
+</html>

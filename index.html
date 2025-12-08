@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生活健康模块</title>
+    <!-- 依赖资源 -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 自定义样式（补充按钮和通用样式） -->
+    <style>
+        /* 通用健康模块样式 */
+        .health-module {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        .health-section {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .health-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .health-section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #3b82f6;
+            border-radius: 2px;
+        }
+        
+        .health-card {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        /* 健康助手按钮样式 - 增强视觉效果 */
+        .health-assistant-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            width: 70px; /* 增大按钮尺寸 */
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4); /* 增强阴影 */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255, 255, 255, 0.8); /* 添加白色边框 */
+            outline: none;
+            /* 新增：呼吸动画，持续吸引注意力 */
+            animation: breath 2s ease-in-out infinite;
+        }
+        
+        /* 呼吸动画 - 增强视觉存在感 */
+        @keyframes breath {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 10px 25px rgba(59, 130, 246, 0.5);
+            }
+        }
+        
+        .health-assistant-btn:hover {
+            transform: translateY(-6px) scale(1.1); /* 增强悬停效果 */
+            box-shadow: 0 12px 25px rgba(59, 130, 246, 0.5);
+            animation: none; /* 悬停时停止呼吸动画 */
+        }
+        
+        .health-assistant-btn:active {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* 增强图标样式 */
+        .health-assistant-btn i {
+            font-size: 2rem; /* 增大图标尺寸 */
+            /* 新增：图标发光效果 */
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            /* 新增：图标轻微旋转动画 */
+            animation: rotate 4s ease-in-out infinite;
+        }
+        
+        /* 图标旋转动画 */
+        @keyframes rotate {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            25% {
+                transform: rotate(-5deg);
+            }
+            75% {
+                transform: rotate(5deg);
+            }
+        }
+        
+        .health-assistant-btn:hover i {
+            animation: beat 0.8s ease-in-out; /* 悬停时心跳动画 */
+        }
+        
+        /* 心跳动画 */
+        @keyframes beat {
+            0%, 100% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.2);
+            }
+            40% {
+                transform: scale(0.9);
+            }
+            60% {
+                transform: scale(1.2);
+            }
+        }
+        
+        /* 按钮提示文字 - 增强可读性 */
+        .health-assistant-tooltip {
+            position: fixed;
+            bottom: 3rem; /* 调整位置适配更大的按钮 */
+            right: 6.5rem;
+            background: #1f2937;
+            color: white;
+            padding: 0.7rem 1.2rem; /* 增大内边距 */
+            border-radius: 8px;
+            font-size: 1rem; /* 增大字体 */
+            font-weight: 500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* 增强提示框阴影 */
+            /* 新增：提示框渐变背景 */
+            background: linear-gradient(90deg, #1f2937, #374151);
+        }
+        
+        .health-assistant-tooltip::after {
+            content: '';
+            position: absolute;
+            right: -8px; /* 调整箭头尺寸 */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid #374151; /* 匹配提示框背景 */
+            border-top: 8px solid transparent;
+            border-bottom: 8px solid transparent;
+        }
+        
+        .health-assistant-btn:hover + .health-assistant-tooltip {
+            opacity: 1;
+            visibility: visible;
+            right: 6rem;
+            transform: translateY(-2px); /* 轻微上移 */
+        }
+        
+        /* 移动端适配 - 保持比例增强效果 */
+        @media (max-width: 768px) {
+            .health-assistant-btn {
+                width: 60px;
+                height: 60px;
+                bottom: 1.5rem;
+                right: 1.5rem;
+                border-width: 2px;
+            }
+            
+            .health-assistant-btn i {
+                font-size: 1.75rem; /* 按比例缩小但仍保持醒目 */
+            }
+            
+            .health-assistant-tooltip {
+                bottom: 2.5rem;
+                right: 5.5rem;
+                font-size: 0.9rem;
+                padding: 0.6rem 1rem;
+            }
+            
+            .health-assistant-btn:hover + .health-assistant-tooltip {
+                right: 5rem;
+            }
+            
+            /* 移动端呼吸动画幅度减小 */
+            @keyframes breath {
+                0%, 100% {
+                    transform: scale(1);
+                    box-shadow: 0 6px 15px rgba(59, 130, 246, 0.4);
+                }
+                50% {
+                    transform: scale(1.05);
+                    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="health-module">
+        <!-- 1. 天气插件 -->
+        <div class="health-section">
+            <h2 class="health-section-title">实时天气与健康建议</h2>
+            <div id="weather-plugin"></div>
+        </div>
+
+        <!-- 2. 健康数据记录 -->
+        <div class="health-section">
+            <h2 class="health-section-title">健康数据记录</h2>
+            <div id="health-data-form"></div>
+        </div>
+
+        <!-- 3. 健康打卡 -->
+        <div class="health-section">
+            <h2 class="health-section-title">今日健康打卡</h2>
+            <div id="health-checkin"></div>
+        </div>
+
+        <!-- 4. 健康知识科普 -->
+        <div class="health-section">
+            <h2 class="health-section-title">健康知识科普</h2>
+            <div class="health-card">
+                <div class="space-y-3">
+                    <div class="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                        <h4 class="font-medium text-gray-800">低温天气如何保护心血管？</h4>
+                        <p class="text-sm text-gray-600 mt-1">低温会使血管收缩，血压升高，建议晨起慢起，避免突然受凉，定时监测血压，饮食减少高盐高脂食物。</p>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                        <h4 class="font-medium text-gray-800">冬季如何补充水分？</h4>
+                        <p class="text-sm text-gray-600 mt-1">冬季空气干燥，即使不感觉口渴也需定时补水，建议饮用温水，可加入枸杞、红枣等，避免一次性大量饮水。</p>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                        <h4 class="font-medium text-gray-800">室内运动如何达到最佳效果？</h4>
+                        <p class="text-sm text-gray-600 mt-1">室内运动前先热身5分钟，运动时保持通风，瑜伽、普拉提、跳绳等都是不错的选择，运动后及时拉伸放松。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 健康数据统计 -->
+        <div class="health-section">
+            <h2 class="health-section-title">健康数据统计</h2>
+            <div id="health-stats"></div>
+        </div>
+    </div>
+
+    <!-- 健康助手悬浮按钮 -->
+    <button id="healthAssistantBtn" class="health-assistant-btn" title="健康助手">
+        <i class="fa fa-heartbeat"></i>
+    </button>
+    <div class="health-assistant-tooltip">健康助手</div>
+
+    <!-- 模块加载顺序：先核心依赖，后业务模块 -->
+    <script src="weather-plugin.js"></script>
+    <script src="stats-module.js"></script>
+    <script src="health-data.js"></script>
+    <script src="checkin-module.js"></script>
+
+    <script>
+        // 初始化所有模块
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. 初始化天气插件
+            const weatherPlugin = new HealthWeatherPlugin({
+                amapKey: '你的高德API Key' // 替换为实际Key
+            });
+
+            // 2. 初始化统计模块（全局实例，供其他模块调用）
+            window.healthStatsInstance = new HealthStatsModule();
+
+            // 3. 初始化健康数据模块
+            new HealthDataModule();
+
+            // 4. 初始化打卡模块
+            new HealthCheckinModule();
+
+            // 5. 初始化健康助手按钮跳转功能
+            const healthAssistantBtn = document.getElementById('healthAssistantBtn');
+            // 替换为你已写好的健康助手页面地址
+            const healthAssistantPageUrl = '健康助手.html'; 
+            
+            healthAssistantBtn.addEventListener('click', () => {
+                // 跳转至健康助手页面
+                window.location.href = healthAssistantPageUrl;
+                
+                // 可选：添加点击反馈动画
+                healthAssistantBtn.classList.add('animate-bounce');
+                setTimeout(() => {
+                    healthAssistantBtn.classList.remove('animate-bounce');
+                }, 500);
+            });
+
+            // 申请通知权限
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            background-color: black;
+        }
+        .box{
+            height: 500px;
+            width: 400px;
+            background-color: white;
+            margin: 300px auto;
+            border-top-left-radius: 50%;
+            border-top-right-radius: 50%;
+            border-bottom-left-radius: 30%;
+            border-bottom-right-radius: 30%;
+            position: relative;
+            transition: all 1s;
+        }
+        .box::before{
+            content:"";
+            height: 100px;
+            width: 200px;
+            position: absolute;
+            background-color: rgb(63, 64, 65);
+            bottom: -90px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 20px;
+            z-index: -1;
+        }
+        .button{
+            width: 150px;
+            height: 50px;
+            background-color: rgb(50, 52, 54);
+            transform: translateX(-50%);
+            position: relative;
+            left: 50%;
+            top: 130%;
+        }
+        .radio{
+          width: 50px;
+          height: 50px;
+          background-color: white;
+          border-radius: 50%;
+          position: absolute;
+          left: 0px;
+          transition: all 1s;
+        }
+        .selected{
+            left: 100px !important;
+        }
+        .light{
+            box-shadow: 0px 0px 360px 200px yellow;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+    <div class="button">
+            <div class="radio"></div>
+        </div>
+    </div>
+    <script>
+        let box=document.querySelector(".box");
+        let radio=document.querySelector(".radio");
+        radio.addEventListener("click",function(){
+            box.classList.toggle("light")
+            radio.classList.toggle("selected")
+        })
+    </script>
+</body>
+</html>

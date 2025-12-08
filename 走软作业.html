@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户注册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 50px 0;
+        }
+
+        .register-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+
+        .title-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title-section img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #e8f4fd;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+
+        .title-section img:hover {
+            transform: scale(1.05);
+        }
+
+        .title-section h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .title-section p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .form-group label {
+            width: 120px;
+            font-size: 16px;
+            color: #555;
+            padding-right: 20px;
+            text-align: right;
+        }
+
+        .form-control {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        /* 性别选项样式 */
+        .radio-group {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+        }
+
+        .radio-group input {
+            margin-right: 5px;
+        }
+
+        /* 兴趣爱好样式 */
+        .checkbox-group {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .checkbox-group input {
+            margin-right: 5px;
+        }
+
+        /* 文本域样式 */
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* 按钮样式 */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit {
+            background-color: #4a90e2;
+            color: white;
+        }
+
+        .btn-submit:hover {
+            background-color: #3a80d2;
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background-color: #f5a623;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: #e59613;
+            transform: translateY(-2px);
+        }
+
+        .btn-register {
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .btn-register:hover {
+            background-color: #4cae4c;
+            transform: translateY(-2px);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .register-container {
+                padding: 20px;
+            }
+
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .form-group label {
+                width: 100%;
+                text-align: left;
+                margin-bottom: 8px;
+                padding-right: 0;
+            }
+
+            .radio-group, .checkbox-group {
+                width: 100%;
+            }
+
+            .button-group {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-container">
+        <div class="title-section">
+            <img src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimage109.360doc.com%2FDownloadImg%2F2025%2F04%2F0321%2F296122601_4_20250403090445718&refer=http%3A%2F%2Fimage109.360doc.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1763724769&t=ebc0dfbb86b4ed5e19c9e759a1f9c950" 
+                 alt="用户头像" >
+            <h1>用户注册</h1>
+            <p>请填写以下信息完成注册</p>
+        </div>
+
+        <form>
+            <div class="form-group">
+                <label for="username">用户名:</label>
+                <input type="text" id="username" class="form-control" placeholder="请输入用户名">
+            </div>
+
+            <div class="form-group">
+                <label for="password">密码:</label>
+                <input type="password" id="password" class="form-control" placeholder="请输入密码">
+            </div>
+
+            <div class="form-group">
+                <label>性别:</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="sex" value="male"> 男性</label>
+                    <label><input type="radio" name="sex" value="female"> 女性</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="education">学历:</label>
+                <select id="education" class="form-control">
+                    <option value="college">大专</option>
+                    <option value="bachelor" selected>本科</option>
+                    <option value="master">硕士</option>
+                    <option value="doctor">博士</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>兴趣爱好:</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="hobby" value="cycling"> 骑车</label>
+                    <label><input type="checkbox" name="hobby" value="sleeping"> 睡觉</label>
+                    <label><input type="checkbox" name="hobby" value="eating"> 吃饭</label>
+                    <label><input type="checkbox" name="hobby" value="coding"> 敲代码</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="remark">备注:</label>
+                <textarea id="remark" class="form-control" placeholder="请输入备注信息"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="avatar">个人头像:</label>
+                <input type="file" id="avatar" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="website">个人网站:</label>
+                <input type="url" id="website" class="form-control" placeholder="请输入网址">
+            </div>
+
+            <div class="form-group">
+                <label for="email">个人邮箱:</label>
+                <input type="email" id="email" class="form-control" placeholder="请输入邮箱">
+            </div>
+
+            <div class="form-group">
+                <label for="height-weight">身高体重:</label>
+                <input type="text" id="height-weight" class="form-control" placeholder="例如: 175cm/65kg">
+            </div>
+
+            <div class="form-group">
+                <label for="birthday">出生日期:</label>
+                <input type="date" id="birthday" class="form-control">
+            </div>
+
+            <div class="button-group">
+                <input type="submit" value="填写完毕" class="btn btn-submit">
+                <input type="reset" value="重置信息" class="btn btn-reset">
+                <input type="button" value="完成注册" class="btn btn-register" id="completeRegister">
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById("completeRegister").addEventListener("click", function() {
+            // 可以添加表单验证逻辑
+            window.location.href = "2.html";
+        });
+    </script>
+</body>
+
+</html>

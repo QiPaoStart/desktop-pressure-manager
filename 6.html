@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-image: url(QQ.png);
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .buttons {
+            position: absolute;
+            right: 50px;  
+            bottom: 50px; 
+            z-index: 10;  
+        }
+
+        .reset-btn {
+            width: 180px;
+            height: 60px;
+            background-color: #4CAF50;
+            color: #000;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+        }
+
+        .reset-btn:hover {
+            background-color: #45a049; 
+            transform: scale(1.05); 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+
+        .reset-btn:active {
+            transform: scale(0.98); 
+        }
+
+        .ww {
+            font-size: 33px;
+            font-weight: bold;
+            position: absolute;
+            color: transparent;
+            bottom: 120px;
+            left: 30px;
+            background: linear-gradient(rgb(208, 161, 74), rgb(200, 142, 35), rgb(245, 160, 1));
+            background-clip: text;
+            z-index: 3;
+        }
+
+        .www {
+            font-size: 22px;
+            font-weight: bold;
+            font-family: 宋体;
+            position: absolute;
+            color: green;
+            bottom: 90px;
+            left: 30px;
+            z-index: 3;
+        }
+
+        .wwww {
+            font-size: 18px;
+            font-weight: bold;
+            width: 300px;
+            height: 50px;
+            position: absolute;
+            color: rgb(18, 18, 18);
+            bottom: 20px;
+            left: 30px;
+            overflow: hidden;
+            z-index: 3;
+        }
+
+        .container::before {
+            content: "";
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="ww">热播榜NO.1</div>
+        <div class="www">抽象 搞笑</div>
+        <div class="wwww">QQ就是那么搞笑,又是那么抽象,我能有什么办法呢,无非是做出来和你们一起笑罢了,嘿嘿嘿,我又来了哈</div>
+    </div>
+
+    <div class="buttons">
+        <input type="button" value="搞错了，再来" class="reset-btn">
+    </div>
+
+    <script>
+        const resetBtn = document.querySelector('.reset-btn');
+        resetBtn.addEventListener('click', function() {
+            window.location.href = "7.html";
+        });
+    </script>
+</body>
+</html>

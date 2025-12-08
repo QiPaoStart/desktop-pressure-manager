@@ -1,0 +1,111 @@
+/* 全局通用样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.health-module {
+    max-width: 768px;
+    margin: 0 auto;
+    padding: 1rem;
+    background: #f8fafc;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.health-section {
+    margin-bottom: 1.5rem;
+}
+
+.health-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #1f2937;
+    border-left: 4px solid #4ade80;
+    padding-left: 0.5rem;
+}
+
+.health-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #f3f4f6;
+    padding: 1rem;
+}
+
+.health-icon {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+/* 按钮样式 */
+.btn-primary {
+    background: #4ade80;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background: #34d370;
+}
+
+.btn-secondary {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #2563eb;
+}
+
+/* 表单样式 */
+.form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+/* 统计模块样式 */
+.stats-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.stats-tab.active {
+    background: #f0fdf4;
+    color: #4ade80;
+    font-weight: 500;
+}
+
+.checkin-progress {
+    height: 1rem;
+    background: #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.checkin-bar {
+    height: 100%;
+    background: #4ade80;
+    transition: width 0.3s;
+}

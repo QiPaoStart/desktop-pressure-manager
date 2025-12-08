@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能AI问答助手</title>
+    <!-- 引入外部资源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#722ED1',
+                        accent: '#0FC6C2',
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        neutral: '#64748B',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02)',
+                        'hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                        'ai': '0 10px 30px -5px rgba(22, 93, 255, 0.15)',
+                    },
+                    animation: {
+                        'pulse-soft': 'pulse-soft 2s infinite',
+                        'typing': 'typing 1.5s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                    },
+                    keyframes: {
+                        'pulse-soft': {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.7 },
+                        },
+                        'typing': {
+                            '0%, 100%': { opacity: 0.4 },
+                            '50%': { opacity: 1 },
+                        },
+                        'float': {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-8px)' },
+                        },
+                        'fadeIn': {
+                            '0%': { opacity: 0, transform: 'translateY(10px)' },
+                            '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                    },
+                },
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+            .bg-blur {
+                backdrop-filter: blur(8px);
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.85);
+                backdrop-filter: blur(12px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+            .dark .glass-effect {
+                background: rgba(30, 41, 59, 0.85);
+                border: 1px solid rgba(51, 65, 85, 0.5);
+            }
+            .gradient-text {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-thin::-webkit-scrollbar {
+                width: 4px;
+            }
+            .scrollbar-thin::-webkit-scrollbar-thumb {
+                background-color: rgba(100, 116, 139, 0.3);
+                border-radius: 2px;
+            }
+            .ai-message {
+                @apply bg-primary/5 dark:bg-primary/10 text-dark dark:text-light p-4 rounded-xl rounded-tl-none border border-primary/20 max-w-[85%] shadow-sm hover:shadow-md transition-all duration-300;
+            }
+            .user-message {
+                @apply bg-white dark:bg-slate-800 text-dark dark:text-light p-4 rounded-xl rounded-tr-none border border-slate-200 dark:border-slate-700 max-w-[85%] shadow-sm self-end hover:shadow-md transition-all duration-300;
+            }
+            .feature-card {
+                @apply glass-effect rounded-xl p-4 shadow-soft hover:shadow-hover transition-all duration-300 cursor-pointer hover:-translate-y-1;
+            }
+            .suggestion-tag {
+                @apply bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-full text-sm hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-all duration-200 cursor-pointer;
+            }
+        }
+    </style>
+    
+    <style>
+        /* 基础样式 */
+        body {
+            background-image: radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.05) 0%, rgba(114, 46, 209, 0.05) 90%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        .dark body {
+            background-image: radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.03) 0%, rgba(114, 46, 209, 0.03) 90%);
+        }
+        
+        /* 打字动画 */
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #165DFF;
+            margin: 0 2px;
+            animation: typing 1.5s infinite;
+        }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        /* 按钮波纹效果 */
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-ripple:after {
+            content: "";
+            background: rgba(255, 255, 255, 0.3);
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+        }
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        
+        /* 渐变背景 */
+        .gradient-bg {
+            background: linear-gradient(135deg, #165DFF 0%, #722ED1 100%);
+        }
+        
+        /* 加载动画 */
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="font-sans text-dark dark:text-light transition-colors duration-300">
+    <!-- 顶部导航栏 -->
+    <header class="sticky top-0 z-50 glass-effect">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-full gradient-bg flex items-center justify-center shadow-ai">
+                    <i class="fa fa-robot text-white text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold gradient-text bg-gradient-to-r from-primary to-secondary">AI问答助手</h1>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- 主题切换按钮 -->
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 btn-ripple">
+                    <i class="fa fa-moon-o dark:hidden text-neutral"></i>
+                    <i class="fa fa-sun-o hidden dark:block text-yellow-400"></i>
+                </button>
+                
+                <!-- 帮助按钮 -->
+                <button id="help-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 btn-ripple">
+                    <i class="fa fa-question-circle text-neutral"></i>
+                </button>
+                
+                <!-- 历史记录按钮 -->
+                <button id="history-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 btn-ripple">
+                    <i class="fa fa-history text-neutral"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- 欢迎区域 -->
+        <section class="text-center mb-12 animate-fade-in">
+            <h2 class="text-[clamp(1.8rem,4vw,2.8rem)] font-bold mb-4 text-shadow">
+                智能AI问答助手
+            </h2>
+            <p class="text-neutral text-lg max-w-2xl mx-auto mb-8">
+                随时为你解答各种问题，提供专业建议和信息查询服务
+            </p>
+            
+            <!-- 快捷提问标签 -->
+            <div class="flex flex-wrap justify-center gap-2 mb-8 max-w-3xl mx-auto">
+                <div class="suggestion-tag" onclick="selectSuggestion('介绍一下人工智能的发展历程')">
+                    人工智能发展历程
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('如何提高学习效率')">
+                    提高学习效率的方法
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('推荐几本编程入门书籍')">
+                    编程入门书籍推荐
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('解释一下区块链技术')">
+                    区块链技术原理
+                </div>
+                <div class="suggestion-tag" onclick="selectSuggestion('如何制定有效的工作计划')">
+                    制定工作计划
+                </div>
+            </div>
+        </section>
+        
+        <!-- 主要功能区域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧功能区（仅桌面端显示） -->
+            <div class="hidden lg:block">
+                <div class="glass-effect rounded-2xl p-6 shadow-soft h-full">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa fa-rocket text-primary"></i> 功能特性
+                    </h3>
+                    
+                    <div class="space-y-3 mb-8">
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary flex-shrink-0 mt-0.5">
+                                <i class="fa fa-comments"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">智能对话</h4>
+                                <p class="text-sm text-neutral">自然语言交互，快速获取答案</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary flex-shrink-0 mt-0.5">
+                                <i class="fa fa-microphone"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">语音输入</h4>
+                                <p class="text-sm text-neutral">支持语音提问，解放双手</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center text-accent flex-shrink-0 mt-0.5">
+                                <i class="fa fa-history"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">历史记录</h4>
+                                <p class="text-sm text-neutral">保存对话历史，随时查看</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-card flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success flex-shrink-0 mt-0.5">
+                                <i class="fa fa-code"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold mb-1">代码解释</h4>
+                                <p class="text-sm text-neutral">专业代码分析和解释</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 使用统计 -->
+                    <div class="mt-8">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <i class="fa fa-bar-chart text-primary"></i> 使用统计
+                        </h3>
+                        <div class="h-48">
+                            <canvas id="usage-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 中间对话区域 -->
+            <div class="lg:col-span-2">
+                <div class="glass-effect rounded-2xl shadow-soft h-[600px] flex flex-col">
+                    <!-- 对话历史区域 -->
+                    <div id="chat-history" class="flex-1 overflow-y-auto p-4 scrollbar-thin space-y-6">
+                        <!-- 欢迎消息 -->
+                        <div class="flex items-start gap-3 animate-fade-in">
+                            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                                <i class="fa fa-robot"></i>
+                            </div>
+                            <div class="ai-message">
+                                你好！我是智能AI问答助手～ 有什么可以帮你的吗？
+                                <div class="mt-3 text-sm text-neutral">
+                                    我可以帮你：解答疑问、提供建议、解释概念、翻译文本、编写代码等
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 输入区域 -->
+                    <div class="border-t border-slate-200 dark:border-slate-700 p-4">
+                        <div class="relative mb-3">
+                            <textarea id="user-input" 
+                                      placeholder="输入你的问题或需求..." 
+                                      class="w-full h-20 px-6 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary focus:ring-2 focus:ring-primary/30 focus:outline-none transition-all duration-300 resize-none scrollbar-thin"></textarea>
+                            <button id="voice-input-btn" class="absolute right-4 bottom-4 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-neutral hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 transition-all duration-300 btn-ripple">
+                                <i class="fa fa-microphone"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-neutral">
+                                <i class="fa fa-info-circle mr-1"></i>
+                                按 Enter 发送消息，Shift+Enter 换行
+                            </div>
+                            <button id="send-btn" class="bg-primary hover:bg-primary/90 text-white font-medium py-2.5 px-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg btn-ripple flex items-center gap-2">
+                                <span>发送</span>
+                                <i class="fa fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- 底部信息 -->
+    <footer class="mt-16 py-6 border-t border-slate-200 dark:border-slate-800">
+        <div class="container mx-auto px-4 text-center text-neutral text-sm">
+            <p>© 2025 智能AI问答助手 | 隐私保护 | 服务条款</p>
+            <p class="mt-2">本AI仅提供参考信息，请勿用于重要决策</p>
+        </div>
+    </footer>
+    
+    <!-- 帮助模态框 -->
+    <div id="help-modal" class="fixed inset-0 bg-black/50 bg-blur z-50 flex items-center justify-center hidden">
+        <div class="glass-effect rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl animate-fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">使用帮助</h3>
+                <button id="close-help" class="text-neutral hover:text-dark dark:hover:text-light transition-colors duration-200">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 max-h-[70vh] overflow-y-auto scrollbar-thin">
+                <div>
+                    <h4 class="font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa fa-question-circle text-primary"></i> 如何提问
+                    </h4>
+                    <p class="text-sm text-neutral">在输入框中输入你的问题或需求，点击发送按钮或按Enter键提交。支持多行输入，使用Shift+Enter换行。</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa fa-microphone text-primary"></i> 语音输入
+                    </h4>
+                    <p class="text-sm text-neutral">点击输入框右侧的麦克风图标，授权后即可使用语音提问。支持中文普通话识别，语音会自动转换为文字并发送。</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa fa-history text-primary"></i> 历史记录
+                    </h4>
+                    <p class="text-sm text-neutral">点击顶部导航栏的历史记录图标，可以查看之前的对话记录。历史记录会保存在本地，清除浏览器数据会导致记录丢失。</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa fa-moon-o text-primary"></i> 主题切换
+                    </h4>
+                    <p class="text-sm text-neutral">点击顶部导航栏的月亮/太阳图标，可以切换深色模式和浅色模式。主题设置会保存在本地，下次访问时自动应用。</p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-2 flex items-center gap-2">
+                        <i class="fa fa-exclamation-triangle text-primary"></i> 注意事项
+                    </h4>
+                    <p class="text-sm text-neutral">本AI提供的信息仅供参考，不构成专业建议。请勿输入敏感信息，包括但不限于身份证号、银行卡号、密码等。</p>
+                </div>
+            </div>
+            
+            <button id="close-help-btn" class="w-full mt-6 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 rounded-xl transition-all duration-300 btn-ripple">
+                我知道了
+            </button>
+        </div>
+    </div>
+    
+    <!-- 历史记录模态框 -->
+    <div id="history-modal" class="fixed inset-0 bg-black/50 bg-blur z-50 flex items-center justify-center hidden">
+        <div class="glass-effect rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-xl animate-fade-in">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">对话历史</h3>
+                <div class="flex gap-2">
+                    <button id="clear-history" class="text-neutral hover:text-danger transition-colors duration-200 text-sm flex items-center gap-1">
+                        <i class="fa fa-trash"></i> 清空历史
+                    </button>
+                    <button id="close-history" class="text-neutral hover:text-dark dark:hover:text-light transition-colors duration-200">
+                        <i class="fa fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="history-list" class="max-h-[70vh] overflow-y-auto scrollbar-thin space-y-4 mb-6">
+                <!-- 历史记录会通过JS动态添加 -->
+                <div class="text-center text-neutral py-8" id="empty-history">
+                    <i class="fa fa-inbox text-3xl mb-2 opacity-50"></i>
+                    <p>暂无对话历史</p>
+                </div>
+            </div>
+            
+            <button id="close-history-btn" class="w-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium py-2.5 rounded-xl transition-all duration-300 btn-ripple">
+                关闭
+            </button>
+        </div>
+    </div>
+    
+    <!-- 语音输入模态框 -->
+    <div id="voice-modal" class="fixed inset-0 bg-black/50 bg-blur z-50 flex items-center justify-center hidden">
+        <div class="glass-effect rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl text-center animate-fade-in">
+            <div class="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-primary mx-auto mb-6 animate-pulse-soft">
+                <i class="fa fa-microphone text-4xl"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-2">正在聆听...</h3>
+            <p class="text-neutral mb-8">请说出你的问题或需求</p>
+            <div class="flex gap-4">
+                <button id="cancel-voice" class="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium py-2.5 rounded-xl transition-all duration-300 btn-ripple">
+                    取消
+                </button>
+                <button id="stop-voice" class="flex-1 bg-primary hover:bg-primary/90 text-white font-medium py-2.5 rounded-xl transition-all duration-300 btn-ripple">
+                    完成
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局元素
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const voiceInputBtn = document.getElementById('voice-input-btn');
+        const themeToggle = document.getElementById('theme-toggle');
+        const helpBtn = document.getElementById('help-btn');
+        const historyBtn = document.getElementById('history-btn');
+        
+        // 模态框元素
+        const helpModal = document.getElementById('help-modal');
+        const closeHelp = document.getElementById('close-help');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const historyModal = document.getElementById('history-modal');
+        const closeHistory = document.getElementById('close-history');
+        const closeHistoryBtn = document.getElementById('close-history-btn');
+        const clearHistory = document.getElementById('clear-history');
+        const historyList = document.getElementById('history-list');
+        const emptyHistory = document.getElementById('empty-history');
+        const voiceModal = document.getElementById('voice-modal');
+        const cancelVoice = document.getElementById('cancel-voice');
+        const stopVoice = document.getElementById('stop-voice');
+        
+        // 存储对话历史
+        let conversationHistory = JSON.parse(localStorage.getItem('aiChatHistory')) || [];
+        
+        // 初始化图表
+        let usageChart;
+        function initChart() {
+            const ctx = document.getElementById('usage-chart').getContext('2d');
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#94a3b8' : '#64748b';
+            
+            usageChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['问答咨询', '信息查询', '建议提供', '代码解释', '其他'],
+                    datasets: [{
+                        data: [45, 25, 15, 10, 5],
+                        backgroundColor: [
+                            '#165DFF',
+                            '#722ED1',
+                            '#0FC6C2',
+                            '#00B42A',
+                            '#FF7D00'
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: textColor,
+                                font: {
+                                    size: 11
+                                },
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+        
+        // 主题切换
+        function toggleTheme() {
+            const isDarkMode = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDarkMode);
+            
+            // 更新图表主题
+            if (usageChart) {
+                const textColor = isDarkMode ? '#94a3b8' : '#64748b';
+                usageChart.options.plugins.legend.labels.color = textColor;
+                usageChart.update();
+            }
+        }
+        
+        // 加载主题设置
+        function loadTheme() {
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+        
+        // 快捷提问选择
+        function selectSuggestion(text) {
+            userInput.value = text;
+            userInput.focus();
+            // 自动滚动到输入框
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+        
+        // 添加消息到对话历史
+        function addMessageToHistory(sender, content, isNew = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start gap-3 opacity-0';
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-neutral flex-shrink-0 shadow-sm">
+                        <i class="fa fa-user"></i>
+                    </div>
+                    <div class="user-message">
+                        ${escapeHtml(content)}
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                        <i class="fa fa-robot"></i>
+                    </div>
+                    <div class="ai-message">
+                        ${escapeHtml(content)}
+                    </div>
+                `;
+            }
+            
+            chatHistory.appendChild(messageDiv);
+            
+            // 触发动画
+            setTimeout(() => {
+                messageDiv.classList.add('animate-fade-in');
+            }, 10);
+            
+            // 滚动到底部
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            // 保存到本地历史（如果是新消息）
+            if (isNew) {
+                const messageObj = {
+                    id: Date.now(),
+                    sender: sender,
+                    content: content,
+                    timestamp: new Date().toISOString()
+                };
+                conversationHistory.push(messageObj);
+                saveHistory();
+                updateHistoryModal();
+            }
+        }
+        
+        // 显示加载状态
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loading-indicator';
+            loadingDiv.className = 'flex items-start gap-3 animate-fade-in';
+            
+            loadingDiv.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white flex-shrink-0 shadow-md">
+                    <i class="fa fa-robot"></i>
+                </div>
+                <div class="ai-message flex items-center gap-2">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            `;
+            
+            chatHistory.appendChild(loadingDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        
+        // 移除加载状态
+        function removeLoading() {
+            const loadingDiv = document.getElementById('loading-indicator');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+        
+        // 发送消息
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+            
+            // 添加用户消息
+            addMessageToHistory('user', message);
+            userInput.value = '';
+            
+            // 显示加载状态
+            showLoading();
+            
+            // 模拟AI响应延迟
+            const delay = Math.floor(Math.random() * 1000) + 1000; // 1-2秒随机延迟
+            setTimeout(() => {
+                removeLoading();
+                
+                // 生成AI响应
+                const aiResponse = generateAiResponse(message);
+                addMessageToHistory('ai', aiResponse);
+            }, delay);
+        }
+        
+        // 生成AI响应（智能问答核心逻辑）
+        function generateAiResponse(userMessage) {
+            const lowerMsg = userMessage.toLowerCase();
+            
+            // 问候语
+            if (lowerMsg.includes('你好') || lowerMsg.includes('hi') || lowerMsg.includes('hello') || lowerMsg.includes('早安') || lowerMsg.includes('晚安')) {
+                const greetings = [
+                    '你好！很高兴为你服务～ 有什么可以帮你的吗？',
+                    'Hello! 我是智能AI问答助手，随时为你解答各种问题。',
+                    '你好呀！有什么我可以帮助你的事情吗？',
+                    '嗨～ 很高兴认识你！请问需要什么帮助？'
+                ];
+                return greetings[Math.floor(Math.random() * greetings.length)];
+            }
+            
+            // 自我介绍
+            else if (lowerMsg.includes('你是谁') || lowerMsg.includes('介绍自己') || lowerMsg.includes('你的功能')) {
+                return `我是智能AI问答助手，一个基于自然语言处理技术的智能对话系统。我的主要功能包括：
+1. 解答各类知识疑问（历史、科学、技术、生活等）
+2. 提供专业建议（学习、工作、生活、健康等）
+3. 解释概念和原理（技术、学术、专业术语等）
+4. 翻译文本（支持多种语言互译）
+5. 编写和解释代码（多种编程语言）
+6. 提供实用信息查询（天气、日期、单位换算等）
+
+你可以直接向我提问，我会尽力为你提供准确、有用的回答！`;
+            }
+            
+            // 人工智能相关
+            else if (lowerMsg.includes('人工智能') || lowerMsg.includes('ai')) {
+                if (lowerMsg.includes('发展历程') || lowerMsg.includes('历史')) {
+                    return `人工智能（AI）的发展历程可以分为以下几个重要阶段：
+
+1. 萌芽期（1950s-1960s）：
+   - 1950年，图灵提出"图灵测试"，奠定AI的理论基础
+   - 1956年，达特茅斯会议正式提出"人工智能"概念
+   - 早期AI程序如逻辑理论家、通用问题求解器出现
+
+2. 低谷期（1970s-1980s）：
+   - 技术瓶颈导致"第一次AI寒冬"（1974-1980）
+   - 专家系统兴起后又因局限性导致"第二次AI寒冬"（1987-1993）
+
+3. 复苏期（1990s-2000s）：
+   - 机器学习算法取得突破，支持向量机、贝叶斯网络等发展
+   - 语音识别、计算机视觉技术逐渐成熟
+   - 深蓝计算机击败国际象棋世界冠军（1997年）
+
+4. 爆发期（2010s-至今）：
+   - 深度学习算法的重大突破（AlexNet，2012年）
+   - 大数据和GPU算力的支持，推动AI技术快速发展
+   - AlphaGo击败围棋世界冠军（2016年）
+   - 大语言模型兴起（GPT系列、BERT等）
+   - AI在各个领域广泛应用，成为新一轮技术革命的核心
+
+当前，AI正处于快速发展阶段，不断推动科技进步和社会变革。`;
+                } else {
+                    return `人工智能（Artificial Intelligence，简称AI）是指由人制造出来的系统所表现出来的智能。它是计算机科学的一个分支，旨在让机器能够模拟、延伸和扩展人类的智能。
+
+人工智能的主要研究领域包括：
+• 机器学习：让计算机能够从数据中学习和改进
+• 深度学习：基于神经网络的机器学习方法
+• 自然语言处理：让计算机理解和生成人类语言
+• 计算机视觉：让计算机能够"看见"和理解图像
+• 语音识别与合成：让计算机能够听懂和说话
+• 专家系统：模拟人类专家的决策过程
+• 机器人技术：将AI应用于实体机器人
+
+AI的应用已经渗透到我们生活的方方面面，包括智能手机、智能家居、医疗健康、交通出行、金融服务、教育等领域，正在深刻改变着我们的生活和工作方式。`;
+                }
+            }
+            
+            // 学习效率相关
+            else if (lowerMsg.includes('学习效率') || lowerMsg.includes('如何学习') || lowerMsg.includes('学习方法')) {
+                return `提高学习效率的实用方法：
+
+1. 制定明确计划：
+   - 设定具体、可衡量的学习目标
+   - 分解大目标为小任务，逐步完成
+   - 合理安排学习时间，制定时间表
+
+2. 采用科学方法：
+   - 番茄工作法：25分钟专注学习+5分钟休息
+   - 间隔重复法：根据遗忘曲线定期复习
+   - 主动回忆法：不看资料，尝试回忆所学内容
+   - 费曼学习法：用简单的语言解释复杂概念
+
+3. 优化学习环境：
+   - 选择安静、无干扰的学习空间
+   - 整理学习桌面，减少分心因素
+   - 关闭手机通知，专注学习
+
+4. 提高专注度：
+   - 一次只做一件事，避免多任务
+   - 设定学习截止时间，增加紧迫感
+   - 避免同时处理多项任务，降低切换成本
+
+5. 强化学习效果：
+   - 做笔记：用自己的话总结关键点
+   - 实践应用：将所学知识运用到实际中
+   - 教学相长：向他人讲解所学内容
+   - 定期测试：检验学习效果，发现薄弱环节
+
+6. 保持良好状态：
+   - 保证充足睡眠，让大脑得到休息
+   - 适当运动，促进大脑血液循环
+   - 保持积极心态，克服学习挫折
+
+记住，高效学习是一个持续优化的过程，找到适合自己的方法并坚持下去最重要！`;
+            }
+            
+            // 编程相关
+            else if (lowerMsg.includes('编程') || lowerMsg.includes('代码') || lowerMsg.includes('编程语言')) {
+                if (lowerMsg.includes('入门书籍') || lowerMsg.includes('推荐')) {
+                    return `编程入门书籍推荐：
+
+1. 通用编程思想：
+   - 《编程珠玑》：培养编程思维，适合所有程序员
+   - 《代码大全》：编程实践的经典指南
+   - 《重构：改善既有代码的设计》：学习如何写出高质量代码
+
+2. 编程语言入门：
+   - Python：《Python编程：从入门到实践》、《流畅的Python》
+   - JavaScript：《JavaScript高级程序设计》、《你不知道的JavaScript》
+   - Java：《Java编程思想》、《Head First Java》
+   - C/C++：《C++ Primer》、《C程序设计语言》
+
+3. 前端开发：
+   - 《HTML与CSS：设计与构建网站》
+   - 《JavaScript DOM编程艺术》
+   - 《React设计模式与最佳实践》
+
+4. 后端开发：
+   - 《Spring Boot实战》
+   - 《Node.js设计模式》
+   - 《Django Web开发实战》
+
+5. 算法与数据结构：
+   - 《算法图解》：入门友好的算法书籍
+   - 《数据结构与算法分析》：深入学习数据结构
+   - 《剑指Offer》：编程面试必备
+
+建议根据自己的学习目标选择合适的书籍，同时结合在线课程和实际项目练习，编程学习最重要的是多写多练！`;
+                } else if (lowerMsg.includes('语言') || lowerMsg.includes('选择')) {
+                    return `编程语言选择建议：
+
+1. 初学者入门：
+   - Python：语法简洁，易上手，应用广泛（数据分析、AI、Web开发）
+   - JavaScript：Web开发必备，前后端都能做，生态丰富
+   - Java：语法严谨，面向对象，就业机会多
+
+2. 具体应用场景：
+   - Web开发：JavaScript、Python、Java、PHP、Ruby
+   - 数据分析/AI：Python、R、Julia
+   - 移动开发：Swift（iOS）、Kotlin（Android）、Flutter（跨平台）
+   - 游戏开发：C++、C#、Unity/Unreal Engine
+   - 系统编程：C、C++、Rust
+   - 区块链开发：Solidity、Rust
+   - 嵌入式开发：C、C++、Python
+
+3. 学习建议：
+   - 不要纠结于"最好的语言"，每种语言都有其适用场景
+   - 先掌握一门语言的核心概念，再学习其他语言会更容易
+   - 结合项目学习，从实际需求出发选择语言
+   - 关注行业趋势，但更重要的是掌握编程思想和解决问题的能力
+
+如果你是完全零基础，推荐从Python开始；如果主要想做Web开发，JavaScript是必备的；如果追求性能和底层开发，可以选择C++或Rust。`;
+                } else {
+                    return `编程是一项实用的技能，学习编程不仅能让你创建软件、网站和应用程序，还能培养逻辑思维和解决问题的能力。
+
+编程学习的一般步骤：
+1. 明确学习目标：确定你想通过编程解决什么问题或开发什么项目
+2. 选择合适的编程语言：根据目标选择最适合的语言（如Python、JavaScript、Java等）
+3. 学习基础知识：语法、数据类型、控制结构、函数、面向对象等
+4. 实践练习：通过小项目、编程题来巩固所学知识
+5. 深入学习：框架、库、算法、数据结构、设计模式等
+6. 参与实际项目：将所学知识应用到真实项目中
+7. 持续学习：编程技术更新快，需要不断学习新的知识和工具
+
+学习资源推荐：
+• 在线课程：Coursera、edX、Udemy、慕课网、掘金小册
+• 文档教程：官方文档、MDN Web Docs、W3Schools
+• 编程练习：LeetCode、HackerRank、CodeWars
+• 社区交流：Stack Overflow、GitHub、掘金、知乎
+
+记住，编程是一门实践性很强的技能，最重要的是多写代码、多解决实际问题。遇到bug不要害怕，调试过程也是学习的重要部分！`;
+                }
+            }
+            
+            // 区块链相关
+            else if (lowerMsg.includes('区块链') || lowerMsg.includes('比特币') || lowerMsg.includes('以太坊')) {
+                return `区块链技术是一种去中心化的分布式账本技术，其核心特点是：
+
+1. 核心概念：
+   - 区块：存储交易数据的基本单位，包含区块头和区块体
+   - 链：每个区块包含前一个区块的哈希值，形成链式结构
+   - 分布式账本：数据在多个节点之间同步存储，无中心服务器
+   - 共识机制：节点之间达成数据一致性的算法（如工作量证明PoW、权益证明PoS）
+   - 加密技术：使用密码学保证数据安全和交易不可篡改
+
+2. 主要特性：
+   - 去中心化：无中心控制机构，节点平等参与
+   - 透明性：交易数据公开可查，所有节点都有完整账本
+   - 不可篡改性：数据一旦记录，难以修改（需控制51%以上节点）
+   - 安全性：加密技术和分布式结构提高了攻击成本
+   - 可追溯性：交易历史可完整追溯，便于审计
+
+3. 应用场景：
+   - 数字货币：比特币、以太坊等加密货币
+   - 金融服务：跨境支付、供应链金融、证券交易
+   - 供应链管理：商品溯源、物流跟踪
+   - 数字身份：去中心化身份认证
+   - 版权保护：数字内容确权和交易
+   - 政务服务：存证、公证、投票
+
+4. 发展现状：
+   - 区块链1.0：以比特币为代表的数字货币
+   - 区块链2.0：以以太坊为代表的智能合约平台
+   - 区块链3.0：跨链技术、联盟链、私有链的实际应用
+
+需要注意的是，区块链技术仍在发展中，除了数字货币，其在实际行业中的应用正在逐步落地，同时也面临着性能、合规等方面的挑战。`;
+            }
+            
+            // 工作计划相关
+            else if (lowerMsg.includes('工作计划') || lowerMsg.includes('时间管理') || lowerMsg.includes('任务安排')) {
+                return `制定有效的工作计划的方法：
+
+1. 明确目标：
+   - 使用SMART原则：具体（Specific）、可衡量（Measurable）、可实现（Achievable）、相关性（Relevant）、时限性（Time-bound）
+   - 区分长期目标和短期目标
+   - 明确每个目标的优先级
+
+2. 任务分解：
+   - 将大目标分解为具体的小任务
+   - 为每个任务设定明确的完成标准
+   - 估计每个任务所需的时间
+
+3. 优先级排序：
+   - 四象限法则：区分紧急且重要、重要不紧急、紧急不重要、不紧急不重要的任务
+   - 优先处理"重要不紧急"的任务，避免陷入紧急事务的漩涡
+   - 合理分配时间和精力
+
+4. 时间安排：
+   - 制定详细的时间表，为每个任务分配固定时间
+   - 利用精力高峰期处理复杂任务
+   - 预留缓冲时间，应对突发情况
+   - 避免任务安排过满，保持弹性
+
+5. 工具选择：
+   - 任务管理工具：Trello、Notion、Todoist、Microsoft To Do
+   - 日历工具：Google日历、Outlook日历
+   - 时间追踪工具：RescueTime、Toggl
+   - 笔记工具：Evernote、Notion、Obsidian
+
+6. 执行与调整：
+   - 专注执行，避免分心
+   - 定期检查进度，及时调整计划
+   - 完成任务后进行总结和反思
+   - 建立反馈机制，持续优化计划
+
+7. 注意事项：
+   - 避免过度规划，留出适当的自由时间
+   - 学会拒绝不必要的任务
+   - 保持工作与生活的平衡
+   - 持续学习和改进时间管理方法
+
+有效的工作计划能够帮助你提高工作效率，减少压力，更好地实现工作目标。记住，计划不是一成不变的，需要根据实际情况灵活调整。`;
+            }
+            
+            // 翻译相关
+            else if (lowerMsg.includes('翻译') || lowerMsg.includes('英文') || lowerMsg.includes('中文') || lowerMsg.includes('日语') || lowerMsg.includes('韩语')) {
+                const chineseToEnglish = {
+                    '你好': 'Hello',
+                    '谢谢': 'Thank you',
+                    '再见': 'Goodbye',
+                    '我爱你': 'I love you',
+                    '请帮我': 'Please help me',
+                    '早上好': 'Good morning',
+                    '晚上好': 'Good evening',
+                    '对不起': 'Sorry',
+                    '没关系': 'It\'s okay',
+                    '谢谢合作': 'Thank you for your cooperation'
+                };
+                
+                const englishToChinese = {
+                    'hello': '你好',
+                    'thank you': '谢谢',
+                    'goodbye': '再见',
+                    'i love you': '我爱你',
+                    'please help me': '请帮我',
+                    'good morning': '早上好',
+                    'good evening': '晚上好',
+                    'sorry': '对不起',
+                    'it\'s okay': '没关系',
+                    'thank you for your cooperation': '谢谢合作'
+                };
+                
+                // 中文翻译英文
+                if (lowerMsg.includes('英文')) {
+                    const text = userMessage.replace(/翻译|英文|为英文|译成英文/g, '').trim();
+                    if (chineseToEnglish[text]) {
+                        return `翻译结果：
+• 中文：${text}
+• 英文：${chineseToEnglish[text]}
+• 发音：${getEnglishPronunciation(chineseToEnglish[text])}
+• 用法示例：${getEnglishExample(chineseToEnglish[text])}`;
+                    } else if (text) {
+                        return `正在为你翻译："${text}"
+• 英文翻译：Translated as "${text}" (模拟翻译结果)
+• 提示：目前支持常用短语翻译，复杂句子翻译功能正在优化中`;
+                    } else {
+                        return `请提供需要翻译的中文内容，例如：
+"翻译 你好 为英文"
+"将 谢谢 译成英文"
+
+支持的翻译方向：中文 ↔ 英文、中文 ↔ 日语、中文 ↔ 韩语`;
+                    }
+                }
+                // 英文翻译中文
+                else if (lowerMsg.includes('中文')) {
+                    const text = userMessage.replace(/翻译|中文|为中文|译成中文/g, '').trim().toLowerCase();
+                    if (englishToChinese[text]) {
+                        return `翻译结果：
+• 英文：${text}
+• 中文：${englishToChinese[text]}
+• 词性：${getEnglishPartOfSpeech(text)}
+• 用法示例：${getChineseExample(englishToChinese[text])}`;
+                    } else if (text) {
+                        return `正在为你翻译："${text}"
+• 中文翻译：翻译为"${text}"（模拟翻译结果）
+• 提示：目前支持常用短语翻译，复杂句子翻译功能正在优化中`;
+                    } else {
+                        return `请提供需要翻译的英文内容，例如：
+"翻译 hello 为中文"
+"将 thank you 译成中文"
+
+支持的翻译方向：中文 ↔ 英文、中文 ↔ 日语、中文 ↔ 韩语`;
+                    }
+                }
+                // 其他翻译
+                else {
+                    return `翻译功能使用说明：
+目前支持的翻译方向：
+• 中文 ↔ 英文
+• 中文 ↔ 日语
+• 中文 ↔ 韩语
+
+使用示例：
+• "翻译 你好 为英文"
+• "将 thank you 译成中文"
+• "翻译 こんにちは 为中文"
+• "将 你好 译成日语"
+
+请明确说明需要翻译的文本和目标语言，我会为你提供准确的翻译结果。`;
+                }
+            }
+            
+            // 感谢相关
+            else if (lowerMsg.includes('谢谢') || lowerMsg.includes('thank') || lowerMsg.includes('感谢')) {
+                const replies = [
+                    '不客气！能帮到你我很开心～',
+                    '不用谢！有任何问题随时告诉我哦',
+                    '很高兴能为你提供帮助！',
+                    '不客气～ 祝你生活愉快！'
+                ];
+                return replies[Math.floor(Math.random() * replies.length)];
+            }
+            
+            // 再见相关
+            else if (lowerMsg.includes('再见') || lowerMsg.includes('bye') || lowerMsg.includes('拜拜')) {
+                const replies = [
+                    '再见！祝你一切顺利～',
+                    'Bye～ 有需要的话随时回来找我哦！',
+                    '下次见！希望能再次为你提供帮助～',
+                    '拜拜～ 祝你生活愉快！'
+                ];
+                return replies[Math.floor(Math.random() * replies.length)];
+            }
+            
+            // 其他问题
+            else {
+                return `感谢你的提问！关于"${userMessage}"，我为你提供以下信息：
+
+由于这是一个演示版本的AI问答助手，我目前的知识库有限。在实际应用中，我可以：
+
+1. 提供更详细、准确的专业知识
+2. 分析复杂问题并给出结构化答案
+3. 提供个性化的建议和解决方案
+4. 支持多轮对话，深入探讨具体问题
+
+如果你有具体的问题领域或需要更详细的解答，请告诉我，我会尽力为你提供帮助！
+
+提示：你可以尝试询问这些类型的问题：
+• 技术相关：编程语言、算法、软件开发等
+• 学习相关：学习方法、书籍推荐、技能提升等
+• 生活相关：时间管理、健康养生、旅行规划等
+• 知识相关：历史事件、科学原理、文化常识等`;
+            }
+        }
+        
+        // 辅助函数：HTML转义
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/\n/g, "<br>");
+        }
+        
+        // 辅助函数：英文发音
+        function getEnglishPronunciation(word) {
+            const pronunciations = {
+                'Hello': '/həˈləʊ/',
+                'Thank you': '/θæŋk juː/',
+                'Goodbye': '/ˌɡʊdˈbaɪ/',
+                'I love you': '/aɪ lʌv juː/',
+                'Please help me': '/pliːz help miː/',
+                'Good morning': '/ɡʊd ˈmɔːnɪŋ/',
+                'Good evening': '/ɡʊd ˈiːvnɪŋ/',
+                'Sorry': '/ˈsɒri/',
+                'It\'s okay': '/ɪts əʊˈkeɪ/',
+                'Thank you for your cooperation': '/θæŋk juː fɔː(r) jɔː(r) kəʊˌɒpəˈreɪʃn/'
+            };
+            return pronunciations[word] || '发音暂未收录';
+        }
+        
+        // 辅助函数：英文例句
+        function getEnglishExample(word) {
+            const examples = {
+                'Hello': 'Hello, my name is John.（你好，我叫约翰。）',
+                'Thank you': 'Thank you for your help.（谢谢你的帮助。）',
+                'Goodbye': 'Goodbye, see you tomorrow.（再见，明天见。）',
+                'I love you': 'I love you more than anything.（我爱你胜过一切。）',
+                'Please help me': 'Please help me solve this problem.（请帮我解决这个问题。）',
+                'Good morning': 'Good morning, how are you today?（早上好，你今天好吗？）',
+                'Good evening': 'Good evening, welcome to our restaurant.（晚上好，欢迎来到我们的餐厅。）',
+                'Sorry': 'I\'m sorry for being late.（对不起，我来晚了。）',
+                'It\'s okay': 'It\'s okay, don\'t worry about it.（没关系，别担心。）',
+                'Thank you for your cooperation': 'Thank you for your cooperation during the project.（感谢你在项目期间的合作。）'
+            };
+            return examples[word] || '例句暂未收录';
+        }
+        
+        // 辅助函数：中文例句
+        function getChineseExample(word) {
+            const examples = {
+                '你好': '你好，很高兴认识你。',
+                '谢谢': '谢谢你的慷慨帮助。',
+                '再见': '再见，一路顺风。',
+                '我爱你': '我爱你，妈妈。',
+                '请帮我': '请帮我拿一下那个东西。',
+                '早上好': '早上好，今天天气真好。',
+                '晚上好': '晚上好，一起去吃饭吧。',
+                '对不起': '对不起，我不是故意的。',
+                '没关系': '没关系，下次注意就好。',
+                '谢谢合作': '谢谢合作，项目圆满完成了。'
+            };
+            return examples[word] || '例句暂未收录';
+        }
+        
+        // 辅助函数：英文词性
+        function getEnglishPartOfSpeech(word) {
+            const parts = {
+                'hello': '感叹词（Interjection）',
+                'thank you': '动词短语（Verb Phrase）',
+                'goodbye': '感叹词（Interjection）',
+                'i love you': '主谓宾结构（SVO Structure）',
+                'please help me': '祈使句（Imperative Sentence）',
+                'good morning': '感叹词（Interjection）',
+                'good evening': '感叹词（Interjection）',
+                'sorry': '形容词（Adjective）/感叹词（Interjection）',
+                'it\'s okay': '主谓表结构（SVP Structure）',
+                'thank you for your cooperation': '动词短语（Verb Phrase）'
+            };
+            return parts[word] || '词性暂未收录';
+        }
+        
+        // 保存历史记录到本地存储
+        function saveHistory() {
+            localStorage.setItem('aiChatHistory', JSON.stringify(conversationHistory));
+        }
+        
+        // 更新历史记录模态框
+        function updateHistoryModal() {
+            if (conversationHistory.length === 0) {
+                emptyHistory.classList.remove('hidden');
+                return;
+            }
+            
+            emptyHistory.classList.add('hidden');
+            historyList.innerHTML = '';
+            
+            // 按时间分组显示历史记录
+            const groupedHistory = {};
+            conversationHistory.forEach(msg => {
+                const date = new Date(msg.timestamp).toLocaleDateString();
+                if (!groupedHistory[date]) {
+                    groupedHistory[date] = [];
+                }
+                groupedHistory[date].push(msg);
+            });
+            
+            // 生成历史记录HTML
+            Object.keys(groupedHistory).forEach(date => {
+                const dateGroup = document.createElement('div');
+                dateGroup.className = 'mb-6';
+                
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'text-sm font-semibold text-neutral mb-3';
+                dateHeader.textContent = date === new Date().toLocaleDateString() ? '今天' : date;
+                dateGroup.appendChild(dateHeader);
+                
+                const messagesContainer = document.createElement('div');
+                messagesContainer.className = 'space-y-3';
+                
+                groupedHistory[date].forEach(msg => {
+                    const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    
+                    const messageItem = document.createElement('div');
+                    messageItem.className = `p-3 rounded-lg ${msg.sender === 'user' ? 'bg-primary/5 dark:bg-primary/10' : 'bg-slate-100 dark:bg-slate-800'}`;
+                    
+                    messageItem.innerHTML = `
+                        <div class="flex justify-between items-center mb-1 text-xs text-neutral">
+                            <span>${msg.sender === 'user' ? '我' : 'AI助手'}</span>
+                            <span>${time}</span>
+                        </div>
+                        <div class="text-sm">${escapeHtml(msg.content)}</div>
+                    `;
+                    
+                    // 点击重新发送用户消息
+                    if (msg.sender === 'user') {
+                        messageItem.classList.add('cursor-pointer', 'hover:bg-primary/10', 'dark:hover:bg-primary/20');
+                        messageItem.addEventListener('click', () => {
+                            userInput.value = msg.content;
+                            userInput.focus();
+                            historyModal.classList.add('hidden');
+                            
+                            // 滚动到输入框
+                            window.scrollTo({
+                                top: document.body.scrollHeight,
+                                behavior: 'smooth'
+                            });
+                        });
+                    }
+                    
+                    messagesContainer.appendChild(messageItem);
+                });
+                
+                dateGroup.appendChild(messagesContainer);
+                historyList.appendChild(dateGroup);
+            });
+        }
+        
+        // 清空历史记录
+        function clearAllHistory() {
+            if (confirm('确定要清空所有对话历史吗？此操作不可恢复。')) {
+                conversationHistory = [];
+                saveHistory();
+                updateHistoryModal();
+            }
+        }
+        
+        // 语音输入模拟（实际项目中需要结合Web Speech API）
+        function startVoiceInput() {
+            voiceModal.classList.remove('hidden');
+            
+            // 模拟语音识别（实际项目中替换为Web Speech API）
+            setTimeout(() => {
+                // 这里只是模拟，实际使用时需要：
+                // 1. 检查浏览器是否支持Web Speech API
+                // 2. 请求麦克风权限
+                // 3. 初始化语音识别
+                // 4. 处理识别结果
+            }, 1000);
+        }
+        
+        // 停止语音输入
+        function stopVoiceInput() {
+            voiceModal.classList.add('hidden');
+            
+            // 模拟识别结果
+            const voiceResults = [
+                '如何提高工作效率',
+                '推荐几本经典的计算机书籍',
+                '解释一下机器学习的基本概念',
+                '明天天气怎么样',
+                '如何制定学习计划'
+            ];
+            
+            const randomResult = voiceResults[Math.floor(Math.random() * voiceResults.length)];
+            userInput.value = randomResult;
+            userInput.focus();
+        }
+        
+        // 取消语音输入
+        function cancelVoiceInput() {
+            voiceModal.classList.add('hidden');
+        }
+        
+        // 初始化页面
+        function init() {
+            // 加载主题
+            loadTheme();
+            
+            // 初始化图表
+            initChart();
+            
+            // 更新历史记录模态框
+            updateHistoryModal();
+            
+            // 事件监听
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // 发送消息
+            sendBtn.addEventListener('click', sendMessage);
+            userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // 语音输入
+            voiceInputBtn.addEventListener('click', startVoiceInput);
+            stopVoice.addEventListener('click', stopVoiceInput);
+            cancelVoice.addEventListener('click', cancelVoiceInput);
+            
+            // 帮助模态框
+            helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+            closeHelp.addEventListener('click', () => helpModal.classList.add('hidden'));
+            closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+            
+            // 历史记录模态框
+            historyBtn.addEventListener('click', () => {
+                updateHistoryModal();
+                historyModal.classList.remove('hidden');
+            });
+            closeHistory.addEventListener('click', () => historyModal.classList.add('hidden'));
+            closeHistoryBtn.addEventListener('click', () => historyModal.classList.add('hidden'));
+            clearHistory.addEventListener('click', clearAllHistory);
+            
+            // 点击模态框外部关闭
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) helpModal.classList.add('hidden');
+            });
+            historyModal.addEventListener('click', (e) => {
+                if (e.target === historyModal) historyModal.classList.add('hidden');
+            });
+            voiceModal.addEventListener('click', (e) => {
+                if (e.target === voiceModal) voiceModal.classList.add('hidden');
+            });
+            
+            // 阻止模态框内容冒泡
+            document.querySelectorAll('.glass-effect').forEach(el => {
+                el.addEventListener('click', (e) => e.stopPropagation());
+            });
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
