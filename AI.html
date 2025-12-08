@@ -95,8 +95,14 @@
             background-attachment: fixed;
             min-height: 100vh;
         }
+        /* 深色模式，设置最底层为较深灰色（#22262b），不是黑色 */
         .dark body {
             background-image: radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.03) 0%, rgba(114, 46, 209, 0.03) 90%);
+            background-color: #22262b !important;
+        }
+        /* 深色模式下API Key输入框文字为黑色 */
+        .dark #deepseek-key {
+            color: #000 !important;
         }
         .typing-dot {
             display: inline-block;
@@ -300,9 +306,7 @@
         const sendBtn = document.getElementById('send-btn');
         const voiceInputBtn = document.getElementById('voice-input-btn');
         const themeToggle = document.getElementById('theme-toggle');
-        // 右上角按钮已去除(不要出现 helpBtn 或 historyBtn 相关代码)
         const deepseekKeyInput = document.getElementById('deepseek-key');
-        // 其余模态框、history、voice保留
         const helpModal = document.getElementById('help-modal');
         const closeHelp = document.getElementById('close-help');
         const closeHelpBtn = document.getElementById('close-help-btn');
